@@ -86,6 +86,7 @@ type UserMeVM struct {
 	Role     model.UserRole `json:"role"`
 	Comments []CommentMeVM  `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
 	Likes    []LikeMeVM     `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"likes"`
+	Posts    []PostMeVM     `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"posts"`
 }
 
 func (vm UserMeVM) ToViewModel(m model.User) UserMeVM {

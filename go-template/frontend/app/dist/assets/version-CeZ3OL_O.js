@@ -1,0 +1,1 @@
+import{d as t,o as n,c as a,x as r,p as _}from"./index-DykNzqLW.js";import{b as e}from"./route-block-B_A1xBdJ.js";var s={VITE_API_BASE_URL:"/api",BASE_URL:"/",MODE:"production",DEV:!1,PROD:!0,SSR:!1};const i=t({__name:"version",setup(p){const o=s.VITE_APP_VERSION;return(c,f)=>(n(),a("div",null,r(_(o)),1))}});typeof e=="function"&&e(i);export{i as default};

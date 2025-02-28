@@ -1,0 +1,645 @@
+- model: User
+  rows:
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      name: 'Hasan Hüseyin'
+      surname: 'Pay'
+      email: 'hasan.pay@hayteknoloji.com'
+      phone: '5515524294'
+      password: '$2a$14$yNbHFna65TvsJIiTGAVoxuuH7AnzdL0u0uDqjOZJLR8JYWejprJey' # 123123
+      role: 10
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      name: 'Arif'
+      surname: 'Aktaş'
+      email: 'arif.aktas@hayteknoloji.com'
+      phone: '5422826040'
+      password: '$2a$14$yNbHFna65TvsJIiTGAVoxuuH7AnzdL0u0uDqjOZJLR8JYWejprJey' # 123123
+      role: 10
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      name: 'Ömer Faruk'
+      surname: 'Taşdemir'
+      email: 'omer.tasdemir@hayteknoloji.com'
+      phone: '5545137809'
+      password: '$2a$14$yNbHFna65TvsJIiTGAVoxuuH7AnzdL0u0uDqjOZJLR8JYWejprJey' # 123123
+      role: 10
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      name: 'Abdulkadir'
+      surname: 'Zeybek'
+      email: 'abdulkadir.zeybek@hayteknoloji.com'
+      phone: '5538566195'
+      password: '$2a$14$yNbHFna65TvsJIiTGAVoxuuH7AnzdL0u0uDqjOZJLR8JYWejprJey' # 123123
+      role: 10
+
+- model: Post
+  rows: 
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Getting Started with Go'
+      user_id: 1
+      content: 'Go is a statically typed, compiled programming language designed at Google.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      main_content: 'Go, also known as Golang, is a statically typed, compiled programming language developed at Google. It was designed to be simple, efficient, and highly concurrent, making it an excellent choice for modern software development.
+One of Gos key strengths is its performance. Since it is compiled, Go programs execute quickly, often rivaling the speed of C and C++. Additionally, Gos garbage collection and memory management system ensure efficient resource handling.
+Gos simplicity is another defining feature. Its syntax is minimalistic, making it easy to learn and write clean, readable code. Unlike other languages that rely on third-party libraries for concurrency, Go has built-in support through goroutines and channels. This makes handling multiple tasks simultaneously efficient and straightforward.
+
+Gos standard library is robust, providing essential tools for networking, file handling, and cryptography. It also comes with a built-in package manager and a powerful testing framework, simplifying development workflows.
+
+The language is widely used in backend development, cloud computing, and distributed systems. Companies like Google, Uber, and Dropbox leverage Go for building scalable services.
+
+Gos growing popularity is driven by its balance of performance, simplicity, and concurrency support. Whether you are developing web applications, microservices, or system tools, Go offers a powerful and reliable foundation.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Microservices Architecture'
+      content: 'A detailed guide on implementing microservices using modern technologies.'
+      user_id: 2
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      main_content: 'Microservices architecture has become a popular approach to building scalable, resilient, and maintainable systems. Unlike monolithic architectures, which bundle all functionalities into a single application, microservices break down an application into smaller, independent services. Each service focuses on a specific business functionality and communicates with other services via APIs. Heres a detailed guide on implementing microservices using modern technologies.
+
+1. Understanding Microservices Architecture
+
+Microservices are built around the idea of independently deployable services. Each service runs in its process and has its database, making it highly decoupled from other services. Microservices are typically developed around business capabilities, allowing teams to work on different services in parallel, which results in faster development cycles.
+
+2. Choosing the Right Technologies
+
+The following are some key technologies used when building microservices:
+	•	Programming Languages: While microservices can be implemented using various programming languages, popular choices include Go, Java (Spring Boot), Python (Flask, Django), and Node.js (Express). The choice of language depends on the teams expertise and service requirements.
+	•	API Communication: RESTful APIs and GraphQL are commonly used to enable communication between microservices. REST APIs are simple and use HTTP methods, while GraphQL provides more flexibility by allowing clients to query only the data they need.
+	•	Service Discovery: In a microservices architecture, services are constantly scaling, being created, and destroyed. To manage this dynamic nature, a service discovery mechanism like Consul or Eureka is used to automatically register services and allow other services to discover them.
+	•	Containerization and Orchestration: Docker containers provide a consistent runtime environment for services, regardless of the underlying infrastructure. Tools like Kubernetes are used for orchestration, allowing teams to manage containers and ensure high availability, scalability, and self-healing of services.
+	•	Message Queues: Asynchronous communication between services is often required for tasks like event handling or background jobs. Technologies like RabbitMQ, Apache Kafka, or NATS are widely used for message queuing and event-driven communication.
+
+3. Building and Deploying Microservices
+	•	Developing Services: Each microservice should be designed to be autonomous, with its database and business logic. This ensures services are loosely coupled and can evolve independently. Its essential to maintain clear boundaries between services, ensuring that each one performs a single function or a set of related functions.
+	•	Inter-service Communication: As microservices communicate through APIs, consider using an API Gateway, such as Kong or Zuul, to aggregate multiple APIs into a single entry point. This improves security, load balancing, and traffic routing.
+	•	Database Management: Each microservice typically has its own database, which can vary depending on the services needs. This ensures that a single microservice doesnt directly impact others. However, techniques like event sourcing and CQRS (Command Query Responsibility Segregation) may be used to maintain data consistency across services.
+
+4. Security and Authentication
+
+Microservices often need to interact with sensitive data. Using OAuth 2.0, JWT (JSON Web Tokens), or API keys is essential for securing service communication. Additionally, implementing Service Mesh frameworks like Istio can add a layer of security and observability for managing traffic between services.
+
+5. Monitoring and Logging
+
+With multiple microservices running, tracking performance and diagnosing failures becomes more complex. To manage this, modern tools like Prometheus for monitoring and Grafana for visualizing metrics are commonly used. ELK Stack (Elasticsearch, Logstash, and Kibana) or Fluentd helps with centralized logging, providing insights into how services interact and identifying issues.
+
+6. CI/CD for Microservices
+
+Continuous Integration and Continuous Deployment (CI/CD) are vital to the successful operation of microservices. Tools like Jenkins, GitLab CI, and CircleCI automate the build, test, and deployment processes, allowing services to be updated independently and quickly.
+
+7. Testing Microservices
+
+Testing microservices involves both unit testing and integration testing. Postman or Swagger can be used for API testing, while JUnit or Testcontainers can be used for testing services in isolated environments. Consumer-Driven Contract Testing is a method used to ensure that APIs between services dont break when they evolve independently.
+
+8. Scaling Microservices
+
+One of the key advantages of microservices is scalability. Microservices can be scaled independently based on the demand of individual services. Kubernetes allows automatic scaling based on CPU or memory usage, ensuring that resources are allocated efficiently without overburdening the system.
+
+Conclusion
+
+Implementing microservices with modern technologies enables the development of highly scalable, flexible, and resilient systems. By utilizing containers, API communication, service discovery, messaging queues, and effective CI/CD pipelines, teams can build robust microservice architectures. Embracing this modular approach allows teams to deliver services faster and more efficiently while enabling independent scaling and updates. However, as with any complex architecture, challenges like managing inter-service communication, handling data consistency, and maintaining security must be properly addressed.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Database Optimization Tips'
+      content: 'Best practices for optimizing database performance in production environments.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 3
+      main_content: 'System performance is crucial for the smooth operation of any application. Slow or inefficient systems can lead to frustrating user experiences, higher operational costs, and a loss of competitive edge. Optimizing your system ensures faster response times, lower resource usage, and a more efficient overall architecture. Here are a few optimization tips that can significantly improve your system performance.
+
+1. Database Query Optimization
+
+A common bottleneck in many applications is database queries. Unoptimized database queries can slow down performance, especially when dealing with large datasets. To optimize database queries:
+	•	Indexing: Ensure that frequently queried fields are indexed.
+	•	Limit Data Retrieval: Retrieve only the necessary data (e.g., using SELECT with specific fields rather than SELECT *).
+	•	Avoid N+1 Query Problem: Use techniques like JOINs or batch fetching to reduce the number of queries.
+	•	Database Caching: Implement caching mechanisms like Redis or Memcached to store frequently accessed data.
+
+2. Load Balancing and Caching
+
+For distributed systems, load balancing ensures that traffic is evenly distributed across multiple servers, preventing overloading of any single server. Combine load balancing with caching to optimize response times:
+	•	Content Delivery Networks (CDNs): Use CDNs to cache static content and reduce latency for end users across different regions.
+	•	In-memory Caching: Cache commonly requested data in memory to reduce the load on databases and APIs.
+
+3. Asynchronous Processing
+
+Some operations dont need to be processed in real-time and can be handled asynchronously. Offload time-consuming tasks to background workers or message queues like RabbitMQ or Kafka:
+	•	Async APIs: For non-blocking operations, use asynchronous APIs to prevent delays in user interactions.
+	•	Task Queues: Move heavy processes like image processing, email sending, or reporting to background queues, allowing the main system to focus on essential tasks.
+
+4. Code Profiling and Refactoring
+
+Performance bottlenecks often originate from inefficient code. Use profiling tools to identify areas of your application that consume excessive resources. Some useful tools include New Relic, Datadog, and Prometheus:
+	•	Optimize Algorithms: Refactor inefficient algorithms and data structures, such as replacing a linear search with a binary search.
+	•	Avoid Memory Leaks: Regularly monitor memory usage and ensure that unused objects are being cleared to prevent memory leaks.
+
+5. Compression and Minification
+
+For web applications, compressing and minifying assets such as images, CSS, and JavaScript files can significantly reduce load times:
+	•	Image Optimization: Use formats like WebP for images and ensure theyre compressed without sacrificing quality.
+	•	Minification: Minify your JavaScript and CSS files to reduce their size, speeding up page load times and improving overall system performance.
+
+6. Horizontal and Vertical Scaling
+
+To meet growing traffic and demand, you need to scale your system effectively:
+	•	Horizontal Scaling: Add more servers to distribute the load. Tools like Kubernetes can automate scaling of containerized applications.
+	•	Vertical Scaling: Increase the capacity of your existing servers (e.g., upgrading CPU, RAM, or storage).
+
+7. Optimize Front-End Performance
+
+Front-end performance can make or break the user experience. Make sure to:
+	•	Lazy Loading: Load only the content required by the user, reducing the initial load time.
+	•	Single Page Applications (SPA): Use SPAs to load content dynamically without refreshing the entire page.
+	•	Preloading: Preload critical resources to ensure that the application loads quickly.
+
+8. Monitoring and Alerts
+
+Finally, continuous monitoring is vital for ongoing performance optimization. Set up alert systems to notify the team when the systems performance degrades. Regularly review performance metrics to catch issues before they impact the user experience.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Cloud Native Applications'
+      content: 'Building scalable applications for cloud environments using containers.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 1
+      main_content: 'System performance is crucial for the smooth operation of any application. Slow or inefficient systems can lead to frustrating user experiences, higher operational costs, and a loss of competitive edge. Optimizing your system ensures faster response times, lower resource usage, and a more efficient overall architecture. Here are a few optimization tips that can significantly improve your system performance.
+
+1. Database Query Optimization
+
+A common bottleneck in many applications is database queries. Unoptimized database queries can slow down performance, especially when dealing with large datasets. To optimize database queries:
+	•	Indexing: Ensure that frequently queried fields are indexed.
+	•	Limit Data Retrieval: Retrieve only the necessary data (e.g., using SELECT with specific fields rather than SELECT *).
+	•	Avoid N+1 Query Problem: Use techniques like JOINs or batch fetching to reduce the number of queries.
+	•	Database Caching: Implement caching mechanisms like Redis or Memcached to store frequently accessed data.
+
+2. Load Balancing and Caching
+
+For distributed systems, load balancing ensures that traffic is evenly distributed across multiple servers, preventing overloading of any single server. Combine load balancing with caching to optimize response times:
+	•	Content Delivery Networks (CDNs): Use CDNs to cache static content and reduce latency for end users across different regions.
+	•	In-memory Caching: Cache commonly requested data in memory to reduce the load on databases and APIs.
+
+3. Asynchronous Processing
+
+Some operations dont need to be processed in real-time and can be handled asynchronously. Offload time-consuming tasks to background workers or message queues like RabbitMQ or Kafka:
+	•	Async APIs: For non-blocking operations, use asynchronous APIs to prevent delays in user interactions.
+	•	Task Queues: Move heavy processes like image processing, email sending, or reporting to background queues, allowing the main system to focus on essential tasks.
+
+4. Code Profiling and Refactoring
+
+Performance bottlenecks often originate from inefficient code. Use profiling tools to identify areas of your application that consume excessive resources. Some useful tools include New Relic, Datadog, and Prometheus:
+	•	Optimize Algorithms: Refactor inefficient algorithms and data structures, such as replacing a linear search with a binary search.
+	•	Avoid Memory Leaks: Regularly monitor memory usage and ensure that unused objects are being cleared to prevent memory leaks.
+
+5. Compression and Minification
+
+For web applications, compressing and minifying assets such as images, CSS, and JavaScript files can significantly reduce load times:
+	•	Image Optimization: Use formats like WebP for images and ensure theyre compressed without sacrificing quality.
+	•	Minification: Minify your JavaScript and CSS files to reduce their size, speeding up page load times and improving overall system performance.
+
+6. Horizontal and Vertical Scaling
+
+To meet growing traffic and demand, you need to scale your system effectively:
+	•	Horizontal Scaling: Add more servers to distribute the load. Tools like Kubernetes can automate scaling of containerized applications.
+	•	Vertical Scaling: Increase the capacity of your existing servers (e.g., upgrading CPU, RAM, or storage).
+
+7. Optimize Front-End Performance
+
+Front-end performance can make or break the user experience. Make sure to:
+	•	Lazy Loading: Load only the content required by the user, reducing the initial load time.
+	•	Single Page Applications (SPA): Use SPAs to load content dynamically without refreshing the entire page.
+	•	Preloading: Preload critical resources to ensure that the application loads quickly.
+
+8. Monitoring and Alerts
+
+Finally, continuous monitoring is vital for ongoing performance optimization. Set up alert systems to notify the team when the systems performance degrades. Regularly review performance metrics to catch issues before they impact the user experience.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'API Security Best Practices'
+      content: 'Essential security measures for protecting your API endpoints.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 2
+      main_content: 'System performance is crucial for the smooth operation of any application. Slow or inefficient systems can lead to frustrating user experiences, higher operational costs, and a loss of competitive edge. Optimizing your system ensures faster response times, lower resource usage, and a more efficient overall architecture. Here are a few optimization tips that can significantly improve your system performance.
+
+1. Database Query Optimization
+
+A common bottleneck in many applications is database queries. Unoptimized database queries can slow down performance, especially when dealing with large datasets. To optimize database queries:
+	•	Indexing: Ensure that frequently queried fields are indexed.
+	•	Limit Data Retrieval: Retrieve only the necessary data (e.g., using SELECT with specific fields rather than SELECT *).
+	•	Avoid N+1 Query Problem: Use techniques like JOINs or batch fetching to reduce the number of queries.
+	•	Database Caching: Implement caching mechanisms like Redis or Memcached to store frequently accessed data.
+
+2. Load Balancing and Caching
+
+For distributed systems, load balancing ensures that traffic is evenly distributed across multiple servers, preventing overloading of any single server. Combine load balancing with caching to optimize response times:
+	•	Content Delivery Networks (CDNs): Use CDNs to cache static content and reduce latency for end users across different regions.
+	•	In-memory Caching: Cache commonly requested data in memory to reduce the load on databases and APIs.
+
+3. Asynchronous Processing
+
+Some operations dont need to be processed in real-time and can be handled asynchronously. Offload time-consuming tasks to background workers or message queues like RabbitMQ or Kafka:
+	•	Async APIs: For non-blocking operations, use asynchronous APIs to prevent delays in user interactions.
+	•	Task Queues: Move heavy processes like image processing, email sending, or reporting to background queues, allowing the main system to focus on essential tasks.
+
+4. Code Profiling and Refactoring
+
+Performance bottlenecks often originate from inefficient code. Use profiling tools to identify areas of your application that consume excessive resources. Some useful tools include New Relic, Datadog, and Prometheus:
+	•	Optimize Algorithms: Refactor inefficient algorithms and data structures, such as replacing a linear search with a binary search.
+	•	Avoid Memory Leaks: Regularly monitor memory usage and ensure that unused objects are being cleared to prevent memory leaks.
+
+5. Compression and Minification
+
+For web applications, compressing and minifying assets such as images, CSS, and JavaScript files can significantly reduce load times:
+	•	Image Optimization: Use formats like WebP for images and ensure theyre compressed without sacrificing quality.
+	•	Minification: Minify your JavaScript and CSS files to reduce their size, speeding up page load times and improving overall system performance.
+
+6. Horizontal and Vertical Scaling
+
+To meet growing traffic and demand, you need to scale your system effectively:
+	•	Horizontal Scaling: Add more servers to distribute the load. Tools like Kubernetes can automate scaling of containerized applications.
+	•	Vertical Scaling: Increase the capacity of your existing servers (e.g., upgrading CPU, RAM, or storage).
+
+7. Optimize Front-End Performance
+
+Front-end performance can make or break the user experience. Make sure to:
+	•	Lazy Loading: Load only the content required by the user, reducing the initial load time.
+	•	Single Page Applications (SPA): Use SPAs to load content dynamically without refreshing the entire page.
+	•	Preloading: Preload critical resources to ensure that the application loads quickly.
+
+8. Monitoring and Alerts
+
+Finally, continuous monitoring is vital for ongoing performance optimization. Set up alert systems to notify the team when the systems performance degrades. Regularly review performance metrics to catch issues before they impact the user experience.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Modern Web Development'
+      content: 'Exploring the latest trends in web development and best practices.'
+      image: 'uploads/images/post_6.jpg'
+      user_id: 3
+      main_content: 'Modern web development has evolved significantly with new frameworks and tools...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Machine Learning Basics'
+      content: 'Introduction to machine learning concepts and applications.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 4
+      main_content: 'Machine learning is transforming how we approach problem-solving in technology...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'DevOps Practices'
+      content: 'Essential DevOps practices for modern development teams.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 1
+      main_content: 'DevOps has become crucial for maintaining efficient development pipelines...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Mobile App Development'
+      content: 'Building cross-platform mobile applications efficiently.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 2
+      main_content: 'Mobile app development requires careful consideration of platform-specific features...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Cybersecurity Essentials'
+      content: 'Fundamental security practices for modern applications.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 3
+      main_content: 'Cybersecurity is more important than ever in todays connected world...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Cloud Architecture'
+      content: 'Designing scalable cloud-native applications.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 4
+      main_content: 'Cloud architecture requires careful planning and consideration of various factors...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Frontend Frameworks'
+      content: 'Comparing popular frontend frameworks and their use cases.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 1
+      main_content: 'Modern frontend development offers various framework choices...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Database Design'
+      content: 'Best practices for designing efficient database schemas.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 2
+      main_content: 'Proper database design is crucial for application performance...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'API Development'
+      content: 'Creating robust and scalable APIs for modern applications.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 3
+      main_content: 'API development requires careful consideration of versioning and documentation...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Testing Strategies'
+      content: 'Comprehensive testing approaches for software development.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 4
+      main_content: 'Testing is a crucial part of the software development lifecycle...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Code Quality'
+      content: 'Maintaining high code quality in large projects.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 1
+      main_content: 'Code quality directly impacts maintainability and scalability...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'System Architecture'
+      content: 'Designing robust and scalable system architectures.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 2
+      main_content: 'System architecture decisions have long-lasting impacts on projects...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Performance Optimization'
+      content: 'Techniques for optimizing application performance.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 3
+      main_content: 'Performance optimization requires a systematic approach...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Security Practices'
+      content: 'Essential security practices for modern applications.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 4
+      main_content: 'Security should be considered at every stage of development...'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      title: 'Continuous Integration'
+      content: 'Implementing effective CI/CD pipelines.'
+      image: 'uploads/images/post_1_1740661448338741000.jpg'
+      user_id: 1
+      main_content: 'Continuous integration helps maintain code quality and deployment efficiency...'
+
+- model: Comment
+  rows:
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 1
+      user_id: 2
+      content: 'Great introduction to Go programming!'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 1
+      user_id: 3
+      content: 'Very helpful for beginners.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 2
+      user_id: 1
+      content: 'Excellent overview of microservices.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 2
+      user_id: 4
+      content: 'This helped me understand the concepts better.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 3
+      user_id: 2
+      content: 'Useful optimization tips!'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 4
+      user_id: 3
+      content: 'Great insights on cloud native development.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 5
+      user_id: 1
+      content: 'Security is crucial, thanks for sharing.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 6
+      user_id: 4
+      content: 'Modern web development explained well.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 7
+      user_id: 2
+      content: 'ML concepts are well explained.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 8
+      user_id: 3
+      content: 'DevOps practices are essential nowadays.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 9
+      user_id: 1
+      content: 'Mobile development insights are valuable.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 10
+      user_id: 4
+      content: 'Security is more important than ever.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 11
+      user_id: 2
+      content: 'Cloud architecture explained well.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 12
+      user_id: 3
+      content: 'Frontend frameworks comparison is helpful.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 13
+      user_id: 1
+      content: 'Database design principles are crucial.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 14
+      user_id: 4
+      content: 'API development best practices covered well.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 15
+      user_id: 2
+      content: 'Testing strategies are comprehensive.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 16
+      user_id: 3
+      content: 'Code quality is indeed important.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 17
+      user_id: 1
+      content: 'System architecture insights are valuable.'
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 18
+      user_id: 4
+      content: 'Performance optimization techniques are useful.'
+
+- model: Like
+  rows:
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 1
+      user_id: 2
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 1
+      user_id: 3
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 1
+      user_id: 4
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 2
+      user_id: 1
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 2
+      user_id: 3
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 3
+      user_id: 2
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 3
+      user_id: 4
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 4
+      user_id: 1
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 4
+      user_id: 3
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 5
+      user_id: 2
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 6
+      user_id: 1
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 7
+      user_id: 3
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 8
+      user_id: 4
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 9
+      user_id: 2
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 10
+      user_id: 1
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 11
+      user_id: 3
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 12
+      user_id: 4
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 13
+      user_id: 2
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 14
+      user_id: 1
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 15
+      user_id: 3
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 16
+      user_id: 4
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 17
+      user_id: 2
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 18
+      user_id: 1
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 19
+      user_id: 3
+
+    - created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      post_id: 20
+      user_id: 4
