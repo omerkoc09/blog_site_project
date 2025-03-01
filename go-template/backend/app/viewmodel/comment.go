@@ -8,10 +8,10 @@ type UserVM struct {
 }
 
 type CommentCreateVM struct {
-	ID      int64  `bun:",pk,autoincrement" json:"id"`
-	PostId  int64  `bun:",notnull" json:"post_id"`
-	UserId  int64  `bun:",notnull" json:"user_id"`
-	Content string `bun:",notnull" json:"content"`
+	ID      int64  `json:"id"`
+	PostId  int64  `json:"post_id"`
+	UserId  int64  `json:"user_id"`
+	Content string `json:"content"`
 }
 
 func (vm CommentCreateVM) ToDBModel(m model.Comment) model.Comment {
@@ -24,10 +24,10 @@ func (vm CommentCreateVM) ToDBModel(m model.Comment) model.Comment {
 }
 
 type CommentListVM struct {
-	ID      int64  `bun:",pk,autoincrement" json:"id"`
-	PostId  int64  `bun:",notnull" json:"post_id"`
-	UserId  int64  `bun:",notnull" json:"user_id"`
-	Content string `bun:",notnull" json:"content"`
+	ID      int64  `json:"id"`
+	PostId  int64  `json:"post_id"`
+	UserId  int64  `json:"user_id"`
+	Content string `json:"content"`
 }
 
 func (vm CommentListVM) ToViewModel(m model.Comment) CommentListVM {
@@ -40,10 +40,10 @@ func (vm CommentListVM) ToViewModel(m model.Comment) CommentListVM {
 }
 
 type CommentDetailVM struct {
-	ID      int64  `bun:",pk,autoincrement" json:"id"`
-	PostId  int64  `bun:",notnull" json:"post_id"`
-	UserId  int64  `bun:",notnull" json:"user_id"`
-	Content string `bun:",notnull" json:"content"`
+	ID      int64  `json:"id"`
+	PostId  int64  `json:"post_id"`
+	UserId  int64  `json:"user_id"`
+	Content string `json:"content"`
 }
 
 func (vm CommentDetailVM) ToViewModel(m model.Comment) CommentDetailVM {
@@ -56,10 +56,10 @@ func (vm CommentDetailVM) ToViewModel(m model.Comment) CommentDetailVM {
 }
 
 type CommentMeVM struct {
-	ID      int64  `bun:",pk,autoincrement" json:"id"`
-	PostId  int64  `bun:",notnull" json:"post_id"`
-	UserId  int64  `bun:",notnull" json:"user_id"`
-	Content string `bun:",notnull" json:"content"`
+	ID      int64  `json:"id"`
+	PostId  int64  `json:"post_id"`
+	UserId  int64  `json:"user_id"`
+	Content string `json:"content"`
 }
 
 func (vm CommentMeVM) ToViewModel(m model.Comment) CommentMeVM {
@@ -72,10 +72,10 @@ func (vm CommentMeVM) ToViewModel(m model.Comment) CommentMeVM {
 }
 
 type CommentMeUpdateVM struct {
-	ID      int64  `bun:",pk,autoincrement" json:"id"`
-	PostId  int64  `bun:",notnull" json:"post_id"`
-	UserId  int64  `bun:",notnull" json:"user_id"`
-	Content string `bun:",notnull" json:"content"`
+	ID      int64  `json:"id"`
+	PostId  int64  `json:"post_id"`
+	UserId  int64  `json:"user_id"`
+	Content string `json:"content"`
 }
 
 func (vm CommentMeUpdateVM) ToDBModel(m model.Comment) model.Comment {

@@ -11,13 +11,13 @@ type UserLoginVM struct {
 }
 
 type UserCreateVM struct {
-	Email    string         `json:"email" validate:"required_without=Phone,omitempty,max=64,email"`
-	Phone    string         `json:"phone" validate:"required_without=Email,omitempty,max=11,numeric"`
-	Name     string         `json:"name" validate:"required,max=100"`
-	Surname  string         `json:"surname" validate:"required,max=100"`
-	Role     model.UserRole `json:"role" validate:"required"`
-	Password string         `json:"password" validate:"required,min=3,max=100"`
-	About    string         `json:"about"  validate:"required,max=100"`
+	Email    string         `json:"email"`
+	Phone    string         `json:"phone"`
+	Name     string         `json:"name"`
+	Surname  string         `json:"surname"`
+	Role     model.UserRole `json:"role"`
+	Password string         `json:"password"`
+	About    string         `json:"about"`
 }
 
 func (vm UserCreateVM) ToDBModel(m model.User) model.User {
@@ -84,9 +84,9 @@ type UserMeVM struct {
 	Surname  string         `json:"surname"`
 	About    string         `json:"about"`
 	Role     model.UserRole `json:"role"`
-	Comments []CommentMeVM  `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
-	Likes    []LikeMeVM     `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"likes"`
-	Posts    []PostMeVM     `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"posts"`
+	Comments []CommentMeVM
+	Likes    []LikeMeVM
+	Posts    []PostMeVM
 }
 
 func (vm UserMeVM) ToViewModel(m model.User) UserMeVM {
@@ -131,11 +131,11 @@ func (vm UserMeVM) ToViewModel(m model.User) UserMeVM {
 }
 
 type UserMeUpdateVM struct {
-	Email    string `json:"email" validate:"required_without=Phone,omitempty,max=64,email"`
-	Phone    string `json:"phone" validate:"required_without=Email,omitempty,max=11,numeric"`
-	Name     string `json:"name" validate:"required,max=100"`
-	Surname  string `json:"surname" validate:"required,max=100"`
-	Password string `json:"password" validate:"max=100"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Name     string `json:"name"`
+	Surname  string `json:"surname"`
+	Password string `json:"password"`
 	About    string `json:"about"`
 }
 

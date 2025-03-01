@@ -3,7 +3,7 @@ package viewmodel
 import "github.com/hayrat/go-template2/backend/common/model"
 
 type LikeCreateVM struct {
-	ID     int64 `bun:",pk" json:"id"`
+	ID     int64 ` json:"id"`
 	UserId int64 `json:"user_id"`
 	PostId int64 `json:"post_id"`
 }
@@ -17,7 +17,7 @@ func (vm LikeCreateVM) ToDBModel(m model.Like) model.Like {
 }
 
 type LikeListVM struct {
-	ID     int64 `bun:",pk" json:"id"`
+	ID     int64 ` json:"id"`
 	UserId int64 `json:"user_id"`
 	PostId int64 `json:"post_id"`
 }
@@ -31,7 +31,7 @@ func (vm LikeListVM) ToViewModel(m model.Like) LikeListVM {
 }
 
 type LikeDetailVM struct {
-	ID     int64 `bun:",pk" json:"id"`
+	ID     int64 ` json:"id"`
 	UserId int64 `json:"user_id"`
 	PostId int64 `json:"post_id"`
 }
@@ -45,7 +45,7 @@ func (vm LikeDetailVM) ToViewModel(m model.Like) LikeDetailVM {
 }
 
 type LikeMeVM struct {
-	ID     int64 `bun:",pk" json:"id"`
+	ID     int64 `json:"id"`
 	UserId int64 `json:"user_id"`
 	PostId int64 `json:"post_id"`
 }
@@ -59,7 +59,7 @@ func (vm LikeMeVM) ToViewModel(m model.Like) LikeMeVM {
 }
 
 type LikeMeUpdateVM struct {
-	ID     int64 `bun:",pk" json:"id"`
+	ID     int64 `json:"id"`
 	UserId int64 `json:"user_id"`
 	PostId int64 `json:"post_id"`
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type PostCreateVM struct {
-	ID          int64  `bun:",pk" json:"id"`
+	ID          int64  `json:"id"`
 	Title       string `json:"title"`
 	Content     string `json:"content"`
 	MainContent string `json:"main_content"`
@@ -30,7 +30,7 @@ func (vm PostCreateVM) ToDBModel(m model.Post) model.Post {
 }
 
 type PostListVM struct {
-	ID           int64         `bun:",pk" json:"id"`
+	ID           int64         `json:"id"`
 	Title        string        `json:"title"`
 	Content      string        `json:"content"`
 	MainContent  string        `json:"main_content"`
@@ -38,8 +38,8 @@ type PostListVM struct {
 	UserId       int64         `json:"user_id"`
 	LikeCount    int64         `json:"like_count"`
 	CommentCount int64         `json:"comment_count"`
-	Likes        []LikeMeVM    `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"likes"`
-	Comments     []CommentMeVM `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
+	Likes        []LikeMeVM    `json:"likes"`
+	Comments     []CommentMeVM `json:"comments"`
 }
 
 func (vm PostListVM) ToViewModel(m model.Post) PostListVM {
@@ -75,7 +75,7 @@ func (vm PostListVM) ToViewModel(m model.Post) PostListVM {
 }
 
 type PostDetailVM struct {
-	ID          int64  `bun:",pk" json:"id"`
+	ID          int64  `json:"id"`
 	Title       string `json:"title"`
 	Content     string `json:"content"`
 	MainContent string `json:"main_content"`
@@ -95,7 +95,7 @@ func (vm PostDetailVM) ToViewModel(m model.Post) PostDetailVM {
 }
 
 type PostMeVM struct {
-	ID           int64         `bun:",pk" json:"id"`
+	ID           int64         `json:"id"`
 	Title        string        `json:"title"`
 	Content      string        `json:"content"`
 	MainContent  string        `json:"main_content"`
@@ -103,8 +103,8 @@ type PostMeVM struct {
 	UserId       int64         `json:"user_id"`
 	LikeCount    int64         `json:"like_count"`
 	CommentCount int64         `json:"comment_count"`
-	Likes        []LikeMeVM    `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"likes"`
-	Comments     []CommentMeVM `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
+	Likes        []LikeMeVM    `json:"likes"`
+	Comments     []CommentMeVM `json:"comments"`
 }
 
 func (vm PostMeVM) ToViewModel(m model.Post) PostMeVM {
@@ -140,7 +140,7 @@ func (vm PostMeVM) ToViewModel(m model.Post) PostMeVM {
 }
 
 type PostMeUpdateVM struct {
-	ID          int64  `bun:",pk" json:"id"`
+	ID          int64  `json:"id"`
 	Title       string `json:"title"`
 	Content     string `json:"content"`
 	MainContent string `json:"main_content"`
