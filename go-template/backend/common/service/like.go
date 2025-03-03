@@ -2,10 +2,9 @@ package service
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/uptrace/bun"
-
-	"database/sql"
 
 	"github.com/hayrat/go-template2/backend/common/model"
 	"github.com/hayrat/go-template2/backend/pkg/errorsx"
@@ -15,6 +14,7 @@ import (
 type ILikeService interface {
 	service.IBaseService[model.Like]
 	GetLikedByUser(ctx context.Context, userID, postID int64) (bool, *model.Like, error)
+	ToggleLike(ctx context.Context, userID, postID int64) error
 }
 
 type LikeService struct {
@@ -25,21 +25,6 @@ func NewLikeService(db *bun.DB) ILikeService {
 	return &LikeService{
 		service.BaseService[model.Like]{DB: db},
 	}
-}
-
-func (s LikeService) Create(ctx context.Context, m *model.Like) error {
-
-	_, err := s.DB.NewInsert().Model(m).Exec(ctx)
-	return errorsx.Database(err)
-}
-
-func (s LikeService) Update(ctx context.Context, m model.Like) error {
-
-	_, err := s.DB.NewUpdate().
-		Model(&m).
-		WherePK().
-		Exec(ctx)
-	return errorsx.Database(err)
 }
 
 func (s LikeService) GetLikedByUser(ctx context.Context, userID, postID int64) (bool, *model.Like, error) {
@@ -56,4 +41,21 @@ func (s LikeService) GetLikedByUser(ctx context.Context, userID, postID int64) (
 		return false, nil, errorsx.Database(err)
 	}
 	return true, like, nil
+}
+
+func (s LikeService) ToggleLike(ctx context.Context, userID, postID int64) error {
+	isLiked, like, err := s.GetLikedByUser(ctx, userID, postID)
+	if err != nil {
+		return err
+	}
+
+	if isLiked {
+		return s.Delete(ctx, like.ID)
+	}
+
+	like = &model.Like{
+		PostId: postID,
+		UserId: userID,
+	}
+	return s.Create(ctx, like)
 }

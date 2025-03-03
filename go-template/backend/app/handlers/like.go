@@ -64,33 +64,13 @@ func (h LikeHandler) MeUpdate(ctx *app.Ctx) error {
 }
 
 func (h LikeHandler) Create(ctx *app.Ctx) error {
-	// URL'den post ID'yi al
 	postID := ctx.ParamsInt64("id")
 	if postID == 0 {
 		return errorsx.BadRequestError("Invalid post ID")
 	}
 
-	// Token'dan user ID'yi al (ctx.UserID() gibi bir metod olduğunu varsayıyorum)
 	userID := ctx.GetUserID()
-
-	isLiked, like, err := h.LikeService.GetLikedByUser(ctx.Context(), userID, postID)
-	if err != nil && !errorsx.IsDBNotFoundError(err) {
-		return err
-	}
-
-	if isLiked {
-		// Post zaten beğenilmiş, beğeniyi kaldır
-
-		err = h.LikeService.Delete(ctx.Context(), like.ID)
-	} else {
-		// Post beğenilmemiş, yeni beğeni ekle
-		like := &model.Like{
-			PostId: postID,
-			UserId: userID,
-		}
-		err = h.LikeService.Create(ctx.Context(), like)
-	}
-
+	err := h.LikeService.ToggleLike(ctx.Context(), userID, postID)
 	if err != nil {
 		return err
 	}
