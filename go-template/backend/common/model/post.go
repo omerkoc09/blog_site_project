@@ -19,5 +19,3 @@ type Post struct {
 func (Post) ModelName() string {
 	return "post"
 }
-
-//TODO: created at değişkeni ekle database de bir sorun çıkarıyor. şimdilik sildim

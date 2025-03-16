@@ -56,7 +56,6 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Post(api, "/post", postHandler.Create)
 	router.Put(api, "/post/:id", postHandler.MeUpdateWithImage)
 	router.Delete(api, "/post/:id", postHandler.Delete)
-	router.Post(api, "/post/:id/image", postHandler.UploadPostImage)
 	router.Post(api, "/post/image", postHandler.CreatePostWithImage)
 
 	router.Post(api, "/comment", commentHandler.Create)

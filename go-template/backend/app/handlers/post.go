@@ -163,67 +163,6 @@ func (h PostHandler) Query(ctx *app.Ctx) error {
 	return ctx.SuccessResponse(result, dataCount)
 }
 
-func (h PostHandler) UploadPostImage(ctx *app.Ctx) error {
-	// Form'dan dosyayı oku
-	file, err := ctx.FormFile("image")
-	if err != nil {
-		return errorsx.BadRequestError("Resim alınamadı: " + err.Error())
-	}
-
-	// Post ID'sini al
-	postID := ctx.ParamsInt64("id")
-	if postID == 0 {
-		return errorsx.BadRequestError("Geçersiz post ID")
-	}
-
-	// Önce post'un var olduğunu ve kullanıcıya ait olduğunu kontrol et
-	post, err := h.postService.GetByID(ctx.Context(), postID)
-	if err != nil {
-		return err // Service zaten uygun hata döndürecektir
-	}
-
-	// Dosya adını oluştur (örn: post_{id}_{timestamp}.jpg)
-	timestamp := time.Now().UnixNano()
-	filename := fmt.Sprintf("post_%d_%d%s", postID, timestamp, filepath.Ext(file.Filename))
-
-	// uploads/images klasörünün varlığını kontrol et ve yoksa oluştur
-	uploadDir := "uploads/images"
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		return errorsx.InternalError(err, "Klasör oluşturulamadı.")
-	}
-
-	// Dosyayı kaydetmek için tam yolu belirle
-	uploadPath := filepath.Join(uploadDir, filename)
-
-	// Dosyayı kaydet
-	src, err := file.Open()
-	if err != nil {
-		return errorsx.InternalError(err, "Dosya açılamadı.")
-	}
-	defer src.Close()
-
-	// Hedef dosyayı oluştur
-	dst, err := os.Create(uploadPath)
-	if err != nil {
-		return errorsx.InternalError(err, "Dosya oluşturulamadı.")
-	}
-	defer dst.Close()
-
-	// Dosyayı kopyala
-	if _, err = io.Copy(dst, src); err != nil {
-		return errorsx.InternalError(err, "Dosya kaydedilemedi.")
-	}
-
-	// Post'u güncelle
-	post.Image = uploadPath
-	err = h.postService.Update(ctx.Context(), post)
-	if err != nil {
-		return errorsx.InternalError(err, "Post güncellenemedi.")
-	}
-
-	return ctx.SendFile(post.Image)
-}
-
 func (h PostHandler) CreatePostWithImage(ctx *app.Ctx) error {
 	// Form verilerini al
 	title := ctx.FormValue("title")
