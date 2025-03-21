@@ -3,8 +3,9 @@ import apiService from "@/services/ApiService";
 import {ref, computed} from "vue";
 import {useUserStore} from "@/store/user";
 import {router} from "@/plugins/1.router";
-import {ErrorPopup, SuccessPopup} from "@/utils/Popup";
 import { useFollow } from "@/composables/useFollowService";
+import AppBar from '@/components/AppBar.vue'
+
 interface Post {
   id: number;
   title: string;
@@ -28,15 +29,6 @@ const route = useRoute()
 const tab = ref(0)
 
 
-const logout =  () => {
-  try {
-    useUserStore().logout()
-    router.push('/')
-  } catch (error) {
-    ErrorPopup('Çıkış yapılırken bir hata oluştu')
-  }
-}
-
 const navigateToPost = (postId: number) => {
   router.push(`/third_page/${postId}`)
 }
@@ -44,13 +36,6 @@ const navigateToPost = (postId: number) => {
 const userId = computed(() => (route.params as { id: string }).id)
 console.log('Post ID:', userId.value)
 
-const navigateToLogin = () => {
-  router.push('../auth/login')
-}
-
-const navigateToRegister = () => {
-  router.push('../auth/register')
-}
 
 const { 
   followLoading, 
@@ -60,6 +45,8 @@ const {
   checkIfFollowing, 
   toggleFollow 
 } = useFollow();
+
+
 
 onMounted(async () => {
   try {
@@ -76,70 +63,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <!-- Site Başlığı ve Profil Menüsü -->
-  <VAppBar color="white" elevation="1">
-    <VContainer class="d-flex align-center pa-0">
-      <!-- Sol taraf: Site Adı -->
-      <div class="d-flex align-center" >
-        <RouterLink to="/" >
-          <VRow to="/" color="black">
-            <VAppBarTitle class="font-weight-bold" >BLOGGER.COM</VAppBarTitle>
-          </VRow>
-        </RouterLink>
-
-      </div>
-
-      <VSpacer />
-
-      <!-- Sağ taraf: Profil Menüsü -->
-      <div class="d-flex align-center" >
-
-        <!-- Giriş yapmamış kullanıcılar için butonlar -->
-        <div v-if="!userStore.user.name" class="d-flex align-center">
-          <VBtn variant="outlined" color="primary" class="me-2" @click="navigateToLogin">
-            Giriş Yap
-          </VBtn>
-          <VBtn variant="outlined" color="primary" @click="navigateToRegister">
-            Kaydol
-          </VBtn>
-        </div>
-
-
-        <!-- Profil Menüsü -->
-        <VMenu v-model="profileMenu" location="bottom end" v-if="userStore.user.name">
-          <template v-slot:activator="{ props }">
-            <VBtn
-                icon
-                v-bind="props"
-            >
-              <VAvatar color="primary" size="40">
-                <span class="text-h6 text-white">{{ userStore.user.name[0] }}</span>
-              </VAvatar>
-            </VBtn>
-          </template>
-
-          <VList width="220">
-            <VListItem to="/profile">
-              <template #prepend>
-                <VIcon icon="tabler-user" size="small" class="me-2" />
-              </template>
-              <VListItemTitle>Profil</VListItemTitle>
-            </VListItem>
-
-            <VDivider class="my-2" />
-
-            <VListItem  color="error" @click="logout">
-              <template #prepend>
-                <VIcon icon="tabler-logout" size="small" class="me-2" color="error"/>
-              </template>
-              <VListItemTitle>Çıkış Yap</VListItemTitle>
-            </VListItem>
-          </VList>
-        </VMenu>
-      </div>
-    </VContainer>
-  </VAppBar>
-
+ 
+  <AppBar :show-add-button="false" />
   <div class="author-container">
     <!-- Author Header -->
     <div class="author-header">

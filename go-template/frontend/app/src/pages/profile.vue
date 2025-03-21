@@ -4,7 +4,7 @@ import { ErrorPopup, SuccessPopup } from '@/utils/Popup'
 import { emailValidator, phoneValidator, requiredValidator } from '@validators'
 import { useUserStore } from '@/store/user'
 import { useRouter } from 'vue-router'
-
+import AppBar from '@/components/AppBar.vue'
 
 const loading = ref(false)
 const form = ref({
@@ -41,27 +41,15 @@ const onSubmit = async () => {
   await useUserStore().updateUser()
   router.push('/')
 }
+
 </script>
 
 <template>
 
 <div>
     <!-- Site Başlığı ve Profil Menüsü -->
-    <VAppBar color="white" elevation="1">
-      <VContainer class="d-flex align-center pa-0">
-        <!-- Sol taraf: Site Adı -->
-        <div class="d-flex align-center" >
-          <RouterLink to="/" >
-          <VRow to="/" color="black">
-          <VAppBarTitle class="font-weight-bold" >BLOGGER.COM</VAppBarTitle>
-          </VRow>
-      </RouterLink>
+    <AppBar :show-add-button="false" />
 
-        </div>
-      </VContainer>
-    </VAppBar>
-
-        
   <VCard>
     <div class="d-flex justify-center pa-10 profile-container" >
       <VCard max-width="400px">

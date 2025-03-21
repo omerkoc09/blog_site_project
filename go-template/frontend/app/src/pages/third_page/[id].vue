@@ -6,7 +6,7 @@ import ApiService from '@/services/ApiService'
 import ImageUploader from '@/components/ImageUploader.vue'
 import { ref } from "vue"
 import { useFollow } from "@/composables/useFollowService";
-import apiService from "@/services/ApiService";
+import AppBar from '@/components/AppBar.vue'
 
 interface Like {
   id: number
@@ -434,70 +434,7 @@ const {
 
 <template>
 
-  <!-- Site Başlığı ve Profil Menüsü -->
-  <VAppBar color="white" elevation="1">
-    <VContainer class="d-flex align-center pa-0">
-      <!-- Sol taraf: Site Adı -->
-      <div class="d-flex align-center" >
-        <RouterLink to="/" >
-          <VRow to="/" color="black">
-
-            <VAppBarTitle class="font-weight-bold" >BLOGGER.COM</VAppBarTitle>
-          </VRow>
-        </RouterLink>
-
-      </div>
-
-      <VSpacer />
-
-      <!-- Sağ taraf: Profil Menüsü -->
-      <div class="d-flex align-center" >
-
-        <!-- Giriş yapmamış kullanıcılar için butonlar -->
-        <div v-if="!userStore.user.name" class="d-flex align-center">
-          <VBtn variant="outlined" color="primary" class="me-2" @click="navigateToLogin">
-            Giriş Yap
-          </VBtn>
-          <VBtn variant="outlined" color="primary" @click="navigateToRegister">
-            Kaydol
-          </VBtn>
-        </div>
-
-
-        <!-- Profil Menüsü -->
-        <VMenu v-model="profileMenu" location="bottom end" v-if="userStore.user.name">
-          <template v-slot:activator="{ props }">
-            <VBtn
-                icon
-                v-bind="props"
-            >
-              <VAvatar color="primary" size="40">
-                <span class="text-h6 text-white">{{ userStore.user.name[0] }}</span>
-              </VAvatar>
-            </VBtn>
-          </template>
-
-          <VList width="220">
-            <VListItem to="/profile">
-              <template #prepend>
-                <VIcon icon="tabler-user" size="small" class="me-2" />
-              </template>
-              <VListItemTitle>Profil</VListItemTitle>
-            </VListItem>
-
-            <VDivider class="my-2" />
-
-            <VListItem  color="error" @click="logout">
-              <template #prepend>
-                <VIcon icon="tabler-logout" size="small" class="me-2" color="error"/>
-              </template>
-              <VListItemTitle>Çıkış Yap</VListItemTitle>
-            </VListItem>
-          </VList>
-        </VMenu>
-      </div>
-    </VContainer>
-  </VAppBar>
+<AppBar :show-add-button="false" />
 
     <div class="posts-container">
     <!-- Loading state -->

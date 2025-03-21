@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { ITableColumn } from '@/model/table'
-import { ApiQuery } from '@/model/api'
 import { useUserStore } from '@/store/user'
 import tarihFormat from '@/utils/ExDate'
 import ApiService from '@/services/ApiService'
 import { ErrorPopup, WarningPopup } from '@/utils/Popup'
 import { router } from '@/plugins/1.router'
 import apiService from "@/services/ApiService";
-import ImageUploader from "@/components/ImageUploader.vue";
 import Pagination from '@/components/Pagination.vue'
-
+import AppBar from '@/components/AppBar.vue'
 
 
 
@@ -57,12 +54,8 @@ interface MyUser {
   role: number
 }
 
-const apiUrl = 'post/'
 const userStore = useUserStore()
-const newComment = ref('')
-const showCommentInput = ref<number | null>(null)
 const users = ref<MyUser[]>([])
-const profileMenu = ref(false)
 
 // Form ve tablo ayarları
 const form = ref<Post>({
@@ -100,7 +93,6 @@ const isLikedByUser = (likes: Like[]) => {
 const handleLike = async (postId: number, post: any) => {
   const [error] = await ApiService.post(`like/${postId}`, {})
 
-
   if (!error) {
     // Yerel state'i güncelle
     if (isLikedByUser(post.likes)) {
@@ -113,6 +105,10 @@ const handleLike = async (postId: number, post: any) => {
       post.like_count++
     }
   }
+}
+
+const handleShowAddModal = () => {
+  showEditModal.value = true
 }
 
 // Kullanıcıları yükleyecek fonksiyon
@@ -131,10 +127,6 @@ const getUserFullName = (userId: number) => {
   return user ? `${user.name} ${user.surname}` : 'Bilinmeyen Kullanıcı'
 }
 
-const getUserNameForIcon = (userId: number) => {
-  const user = users.value.find(u => u.id === userId)
-  return user?.name[0]
-}
 
 // Çıkış yapma fonksiyonu
 const logout =  () => {
@@ -154,30 +146,6 @@ const selectedFile = ref<File | null>(null)
 const showEditModal = ref(false)
 const loading = ref(false)
 const updateLoading = ref(false)
-
-const createImage = async (file: File) => {
-  if (!file) return
-  loading.value = true
-  try {
-    const formData = new FormData()
-    formData.append('image', file)
-    const [error, response] = await ApiService.post(
-        `post/image`,
-        formData
-    )
-    if (error) {
-      ErrorPopup(error)
-      return null
-    }
-    SuccessPopup('Resim başarıyla yüklendi')
-    return (response.data as { imageUrl: string }).imageUrl // Type assertion added
-  } catch (err) {
-    ErrorPopup('Bir hata oluştu')
-    return null
-  } finally {
-    loading.value = false
-  }
-}
 
 
 // Resim yükleme fonksiyonları
@@ -222,9 +190,7 @@ const removeImage = () => {
     fileInput.value.value = ''
   }
 }
-const refreshPosts = () => {
-  console.log("Gönderi başarıyla eklendi/güncellendi, listeyi güncelle!")
-}
+
 
 const posts = ref<Post[]>([]);
  onMounted(async () => {
@@ -310,96 +276,19 @@ const onSubmit = async () => {
     loading.value = false
   }
 }
-const rows = ref<any[]>([])
 
 const onPageChanged = (pageData: { page: number, items: Post[] }) => {
   console.log('Sayfa değişti:', pageData.page)
   console.log('Sayfa öğeleri:', pageData.items)
 }
 
-const navigateToLogin = () => {
-  router.push('auth/login')
-}
-
-const navigateToRegister = () => {
-  router.push('auth/register')
-}
 
 </script>
 
 
 <template>
 
-
-
-  <!-- Site Başlığı ve Profil Menüsü -->
-  <VAppBar color="white" elevation="1">
-    <VContainer class="d-flex align-center pa-0">
-      <!-- Sol taraf: Site Adı -->
-      <div class="d-flex align-center">
-        <RouterLink to="/">
-          <VRow to="/" color="black">
-            <VAppBarTitle class="font-weight-bold">BLOGGER.COM</VAppBarTitle>
-          </VRow>
-        </RouterLink>
-      </div>
-
-      <VSpacer />
-
-      <!-- Sağ taraf: Ekle Butonu ve Profil Menüsü -->
-      <div class="d-flex align-center">
-        <!-- Giriş yapmamış kullanıcılar için butonlar -->
-        <div v-if="!userStore.user.name" class="d-flex align-center">
-          <VBtn variant="outlined" color="primary" class="me-2" @click="navigateToLogin">
-            Giriş Yap
-          </VBtn>
-          <VBtn variant="outlined" color="primary" @click="navigateToRegister">
-            Kaydol
-          </VBtn>
-        </div>
-
-        <!-- Giriş yapmış kullanıcılar için Ekle butonu ve profil menüsü -->
-        <template v-if="userStore.user.name">
-          <VBtn variant="outlined" color="primary" class="me-3" @click="showEditModal = true">
-            <VIcon start>tabler-plus</VIcon>
-            Ekle
-          </VBtn>
-
-          <VMenu v-model="profileMenu" location="bottom end">
-            <template v-slot:activator="{ props }">
-              <VBtn
-                  icon
-                  v-bind="props"
-              >
-                <VAvatar color="primary" size="40">
-                  <span class="text-h6 text-white">{{ userStore.user.name[0] }}</span>
-                </VAvatar>
-              </VBtn>
-            </template>
-
-            <VList width="220">
-              <VListItem to="/profile">
-                <template #prepend>
-                  <VIcon icon="tabler-user" size="small" class="me-2" />
-                </template>
-                <VListItemTitle>Profil</VListItemTitle>
-              </VListItem>
-
-              <VDivider class="my-2" />
-
-              <VListItem color="error" @click="logout">
-                <template #prepend>
-                  <VIcon icon="tabler-logout" size="small" class="me-2" color="error"/>
-                </template>
-                <VListItemTitle>Çıkış Yap</VListItemTitle>
-              </VListItem>
-            </VList>
-          </VMenu>
-        </template>
-      </div>
-    </VContainer>
-  </VAppBar>
-
+   <AppBar @showAddModal="handleShowAddModal" />
 
   <div class="post-list">
     <v-container>
