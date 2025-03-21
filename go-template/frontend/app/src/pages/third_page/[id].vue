@@ -5,8 +5,8 @@ import { ErrorPopup } from '@/utils/Popup'
 import ApiService from '@/services/ApiService'
 import ImageUploader from '@/components/ImageUploader.vue'
 import { ref } from "vue"
-import AppBar from '@/components/AppBar.vue'
-
+import { useFollow } from "@/composables/useFollowService";
+import apiService from "@/services/ApiService";
 
 interface Like {
   id: number
@@ -107,11 +107,11 @@ const handleLike = async (postId: number, post: any) => {
     if (isLikedByUser(post.likes)) {
       // Eğer kullanıcı zaten beğenmişse, beğeniyi kaldır
       post.likes = post.likes.filter((like: { user_id: any }) => like.user_id !== userStore.user.id)
-      post.like_count--
+      likeCount.value--
     } else {
       // Beğeni ekle
       post.likes.push({ user_id: userStore.user.id })
-      post.like_count++
+      likeCount.value++
     }
   }
 }
@@ -147,10 +147,8 @@ const handleComment = async (postId: number, post: any) => {
         }
       })
 
-      post.comment_count++
-
+      commentCount.value++
       newComment.value = ''
-
       showCommentInput.value = null
 
     }
@@ -221,7 +219,7 @@ const deleteComment = async (commentId: number, post: any) => {  // post paramet
     if (!error) {
       // Direkt gelen post üzerinde güncelleme yap
       post.comments = post.comments.filter((c: { id: number }) => c.id !== commentId)
-      post.comment_count--
+      commentCount.value--
     }
   } catch (error) {
     ErrorPopup('Yorum silinirken bir hata oluştu')
@@ -252,7 +250,11 @@ const showEditModal = ref(false)
 const deleteConfirmDialog = ref(false)
 const updateLoading = ref(false)
 const deleteLoading = ref(false)
-const showCreateModal = ref(false)
+const likeCount = ref(0)
+const commentCount = ref(0)
+const userId = computed(() => (route.params as { id: string }).id)
+const selectedFile = ref<File | null>(null)
+const profileMenu = ref(false)
 
 
 // Kullanıcı post sahibi mi kontrolü
@@ -307,18 +309,20 @@ onMounted(async () => {
     return ErrorPopup(err)
 
   form.value = data.data
+  likeCount.value = form.value.likes.length
+  commentCount.value = form.value.comments.length
   loadUsers()
 
   console.log('form value', form.value)
+
+  await fetchFollowerCount(userId.value);
+  await checkIfFollowing(userId.value);
 
 
 })
 
 
 // Resim yükleme için değişkenler
-const selectedFile = ref<File | null>(null)
-
-const profileMenu = ref(false)
 
 
 
@@ -414,6 +418,17 @@ const navigateToLogin = () => {
 const navigateToRegister = () => {
   router.push('../auth/register')
 }
+
+const { 
+  followLoading, 
+  isFollowing, 
+  followerCount, 
+  fetchFollowerCount, 
+  checkIfFollowing, 
+  toggleFollow 
+} = useFollow();
+
+
 
 </script>
 
@@ -526,25 +541,39 @@ const navigateToRegister = () => {
           </template>
 
           <div>
-            <VCardTitle class="user-name">
+            <VCardTitle class="user-name d-flex align-center">
               <a class="author-link" @click="navigateToAuthor(form.user_id)" target="_blank"> {{ getUserFullName(form.user_id) }}</a>
+              <VBtn 
+                v-if="!userStore.user.id || userStore.user.id !== form.user_id"
+                :color="isFollowing ? 'error' : 'primary'" 
+                :variant="isFollowing ? 'outlined' : 'flat'"
+                :loading="followLoading"
+                class="follow-btn ms-5"
+                size="small"
+                density="compact"
+                @click="toggleFollow(userId)"
+              >
+                <VIcon :icon="isFollowing ? 'tabler-user-minus' : 'tabler-user-plus'" size="small" class="me-1" />
+                {{ isFollowing ? 'Takibi Bırak' : 'Takip Et' }}
+              </VBtn>
             </VCardTitle>
             <VCardSubtitle class="post-date">
               {{ tarihFormat(form.created_at) }}
             </VCardSubtitle>
           </div>
+          
         </VCardItem>
 
         <!-- Like and comment buttons -->
         <VCardActions>
           <VBtn variant="text" prepend-icon="tabler-heart" :color="isLikedByUser(form.likes) ? 'error' : 'default'"
             @click="handleLike(form.id, form)">
-            {{ form.like_count }}
+            {{ likeCount }}
           </VBtn>
 
           <VBtn variant="text" prepend-icon="tabler-message-circle" color="default"
             @click="showCommentInput = showCommentInput === form.id ? null : form.id ; scrollToBottom()">
-            {{ form.comment_count }} 
+            {{ commentCount }} 
           </VBtn>
           <VSpacer />
         </VCardActions>

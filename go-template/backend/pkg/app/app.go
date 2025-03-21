@@ -67,7 +67,7 @@ func New(router IRouter, Version, BuildTime string) *App {
 		AllowMethods:     "GET,POST,PUT,DELETE",
 		AllowHeaders:     "Content-Type,Authorization,Origin",
 		AllowCredentials: true,
-		ExposeHeaders:    "Content-Length, Content-Type",
+		ExposeHeaders:    "Content-Length,Content-Type",
 	}))
 	fiberApp.Use(logger.New())
 	fiberApp.Use(requestid.New(requestid.Config{

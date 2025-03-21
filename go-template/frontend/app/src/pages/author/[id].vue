@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import apiService from "@/services/ApiService";
-import {ref} from "vue";
+import {ref, computed} from "vue";
 import {useUserStore} from "@/store/user";
 import {router} from "@/plugins/1.router";
-import {ErrorPopup} from "@/utils/Popup";
-import * as https from "node:https";
-
+import {ErrorPopup, SuccessPopup} from "@/utils/Popup";
+import { useFollow } from "@/composables/useFollowService";
 interface Post {
   id: number;
   title: string;
@@ -20,13 +19,14 @@ const form = ref({
   email: '',
   phone: '',
   about: '',
-  posts: [] as Post[],
+  Posts:[] as Post[],
 })
 
 const userStore = useUserStore()
 const profileMenu = ref(false)
 const route = useRoute()
 const tab = ref(0)
+
 
 const logout =  () => {
   try {
@@ -52,13 +52,23 @@ const navigateToRegister = () => {
   router.push('../auth/register')
 }
 
+const { 
+  followLoading, 
+  isFollowing, 
+  followerCount, 
+  fetchFollowerCount, 
+  checkIfFollowing, 
+  toggleFollow 
+} = useFollow();
 
 onMounted(async () => {
   try {
     const [err, response] = await apiService.get<any>(`user_guest/${userId.value}`);
     if(err) return
-    form.value = response.data;
-    console.log('User data:', form.value)
+    form.value = response.data
+    console.log('User data:', form.value);
+    await fetchFollowerCount(userId.value);
+    await checkIfFollowing(userId.value);
   } catch (error) {
     console.error("Veri alınırken hata oluştu:", error);
   }
@@ -133,7 +143,24 @@ onMounted(async () => {
   <div class="author-container">
     <!-- Author Header -->
     <div class="author-header">
-      <h1 class="author-name">{{ form.name }} {{ form.surname }}</h1>
+      <div class="author-info">
+        <h1 class="author-name">{{ form.name }} {{ form.surname }}</h1>
+        <div class="author-followers">
+          <VIcon icon="tabler-users" size="small" class="me-1" />
+          {{ followerCount }} Takipçi
+        </div>
+      </div>
+      <VBtn 
+         v-if="!userStore.user.id || userStore.user.id !== parseInt(userId)"
+        :color="isFollowing ? 'error' : 'primary'" 
+        :variant="isFollowing ? 'outlined' : 'flat'"
+        :loading="followLoading"
+        class="follow-btn"
+        @click="toggleFollow(userId)"
+      >
+        <VIcon :icon="isFollowing ? 'tabler-user-minus' : 'tabler-user-plus'" class="me-1" />
+        {{ isFollowing ? 'Takibi Bırak' : 'Takip Et' }}
+      </VBtn>
     </div>
 
     <!-- Tabs -->
@@ -151,14 +178,14 @@ onMounted(async () => {
     <VWindow v-model="tab" class="mt-6">
       <!-- Posts Tab -->
       <VWindowItem value="0">
-        <div v-if="form.posts.length === 0" class="text-center pa-4">
+        <div v-if="!form.Posts || form.Posts.length === 0" class="text-center pa-4">
           <VIcon icon="tabler-article-off" size="48" color="grey"/>
           <p class="text-h6 text-grey mt-2">Henüz gönderi bulunmamaktadır.</p>
         </div>
         
         <div v-else class="posts-grid">
           <VCard
-            v-for="post in form.posts"
+            v-for="post in form.Posts"
             :key="post.id"
             class="post-card"
             @click="navigateToPost(post.id)"
@@ -228,15 +255,33 @@ onMounted(async () => {
 }
 
 .author-header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 32px;
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .author-name {
   font-size: 2.5rem;
   font-weight: 600;
   color: #333;
-  margin: 0;
+  margin: 0 0 8px 0;
+}
+
+.author-followers {
+  display: flex;
+  align-items: center;
+  color: #666;
+  font-size: 1rem;
+}
+
+.follow-btn {
+  min-width: 130px;
 }
 
 .posts-grid {

@@ -27,12 +27,14 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	tokenService := service.NewTokenService(secretKey)
 	commentService := service.NewCommentService(app.DB)
 	likeService := service.NewLikeService(app.DB)
+	followService := service.NewFollowService(app.DB)
 
 	authHandler := handlers.NewAuthHandler(authService, userService, *tokenService)
 	userHandler := handlers.NewUserHandler(userService)
 	postHandler := handlers.NewPostHandler(postService)
 	commentHandler := handlers.NewCommentHandler(commentService)
 	likeHandler := handlers.NewLikeHandler(likeService)
+	followHandler := handlers.NewFollowHandler(followService)
 
 	router.Post(api, "/auth/login", authHandler.Login)
 	router.Post(api, "/auth/refresh", authHandler.RefreshToken)
@@ -46,6 +48,7 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Get(api, "/post/:id", postHandler.GetByID)
 	router.Get(api, "/user", userHandler.Query)
 	router.Get(api, "/user_guest/:id", userHandler.GetByID)
+	router.Get(api, "/followers/:id", followHandler.GetFollowers)
 
 	api.Use(router.JWTMiddleware(app))
 
@@ -67,4 +70,8 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Put(api, "/like/:id", likeHandler.MeUpdate)
 	router.Delete(api, "/like/:id", likeHandler.Delete)
 
+	// Register follow routes
+	router.Post(api, "/follow/:id", followHandler.Follow)
+	router.Delete(api, "/follow/:id", followHandler.Unfollow)
+	router.Get(api, "/following/:id", followHandler.GetFollowing)
 }

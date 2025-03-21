@@ -46,16 +46,14 @@ func (vm PostUpdateVM) ToDBModel(m model.Post) model.Post {
 }
 
 type PostListVM struct {
-	ID           int64         `bun:",pk" json:"id"`
-	Title        string        `json:"title"`
-	Content      string        `json:"content"`
-	MainContent  string        `json:"main_content"`
-	Image        string        `json:"image"`
-	UserId       int64         `json:"user_id"`
-	LikeCount    int64         `json:"like_count"`
-	CommentCount int64         `json:"comment_count"`
-	Likes        []LikeMeVM    `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"likes"`
-	Comments     []CommentMeVM `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
+	ID          int64         `bun:",pk" json:"id"`
+	Title       string        `json:"title"`
+	Content     string        `json:"content"`
+	MainContent string        `json:"main_content"`
+	Image       string        `json:"image"`
+	UserId      int64         `json:"user_id"`
+	Likes       []LikeMeVM    `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"likes"`
+	Comments    []CommentMeVM `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
 }
 
 func (vm PostListVM) ToViewModel(m model.Post) PostListVM {
@@ -65,8 +63,6 @@ func (vm PostListVM) ToViewModel(m model.Post) PostListVM {
 	vm.MainContent = m.MainContent
 	vm.Image = m.Image
 	vm.UserId = m.UserId
-	vm.LikeCount = m.LikeCount
-	vm.CommentCount = m.CommentCount
 
 	vm.Likes = make([]LikeMeVM, len(m.Likes))
 	for i, like := range m.Likes {
@@ -111,16 +107,14 @@ func (vm PostDetailVM) ToViewModel(m model.Post) PostDetailVM {
 }
 
 type PostMeVM struct {
-	ID           int64         `bun:",pk" json:"id"`
-	Title        string        `json:"title"`
-	Content      string        `json:"content"`
-	MainContent  string        `json:"main_content"`
-	Image        string        `json:"image"`
-	UserId       int64         `json:"user_id"`
-	LikeCount    int64         `json:"like_count"`
-	CommentCount int64         `json:"comment_count"`
-	Likes        []LikeMeVM    `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"likes"`
-	Comments     []CommentMeVM `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
+	ID          int64         `bun:",pk" json:"id"`
+	Title       string        `json:"title"`
+	Content     string        `json:"content"`
+	MainContent string        `json:"main_content"`
+	Image       string        `json:"image"`
+	UserId      int64         `json:"user_id"`
+	Likes       []LikeMeVM    `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"likes"`
+	Comments    []CommentMeVM `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
 }
 
 func (vm PostMeVM) ToViewModel(m model.Post) PostMeVM {
@@ -130,9 +124,6 @@ func (vm PostMeVM) ToViewModel(m model.Post) PostMeVM {
 	vm.MainContent = m.MainContent
 	vm.Image = m.Image
 	vm.UserId = m.UserId
-	vm.LikeCount = m.LikeCount
-	vm.CommentCount = m.CommentCount
-
 	vm.Likes = make([]LikeMeVM, len(m.Likes))
 	for i, like := range m.Likes {
 		vm.Likes[i] = LikeMeVM{

@@ -36,15 +36,6 @@ func (h PostHandler) GetByID(ctx *app.Ctx) error {
 	if err != nil {
 		return err
 	}
-
-	likeCount := len(post.Likes)
-
-	commentCount := len(post.Comments)
-
-	post.LikeCount = int64(likeCount)
-
-	post.CommentCount = int64(commentCount)
-
 	result := viewmodel.PostMeVM{}.ToViewModel(post)
 
 	return ctx.SuccessResponse(result)
@@ -85,15 +76,6 @@ func (h PostHandler) Query(ctx *app.Ctx) error {
 	data, dataCount, err := h.postService.GetQuery(ctx.Context(), q, p, relations...)
 	if err != nil {
 		return err
-	}
-
-	// Update counts before converting to view models
-	for i := range data {
-		// Update like_count based on Likes slice length
-		data[i].LikeCount = int64(len(data[i].Likes))
-
-		// Update comment_count based on Comments slice length
-		data[i].CommentCount = int64(len(data[i].Comments))
 	}
 
 	var result []viewmodel.PostListVM

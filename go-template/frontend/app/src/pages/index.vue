@@ -81,11 +81,9 @@ const form = ref<Post>({
     name: '',
     surname: ''
   }
+
 })
 
-
-
-console.log('form value2', form.value)
 
 const navigateToPost = (postId: number) => {
   router.push(`third_page/${postId}`)
@@ -172,7 +170,7 @@ const createImage = async (file: File) => {
       return null
     }
     SuccessPopup('Resim başarıyla yüklendi')
-    return response.data.imageUrl // Backendden dönen resim URL'sini varsayıyorum
+    return (response.data as { imageUrl: string }).imageUrl // Type assertion added
   } catch (err) {
     ErrorPopup('Bir hata oluştu')
     return null
@@ -268,13 +266,7 @@ const onSubmit = async () => {
     // Form verilerini ve resmi tek istekte gönder
     const [error, resp] = await ApiService.post(
         'post/image',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        },
-        undefined
+        formData
     )
 
     if (error) {
@@ -414,13 +406,13 @@ const navigateToRegister = () => {
       <Pagination :items="posts" :items-per-page="12" @page-changed="onPageChanged">
         <template #default="{ items: paginatedPosts }">
           <v-row>
-            <v-col v-for="form in paginatedPosts" :key="form.id" cols="12" md="6" lg="4">
-              <v-card class="mx-auto post-card" max-width="400" @click="navigateToPost(form.id)">
+            <v-col v-for="post in paginatedPosts as Post[]" :key="post.id" cols="12" md="6" lg="4">
+              <v-card class="mx-auto post-card" max-width="400" @click="navigateToPost(post.id)">
                 <div class="image-container">
                   <v-img
-                      v-if="form.image"
-                      :src="`http://localhost:3001/${form.image}`"
-                      :alt="form.title"
+                      v-if="post.image"
+                      :src="`http://localhost:3001/${post.image}`"
+                      :alt="post.title"
                       height="200"
                       cover
                   />
@@ -437,20 +429,20 @@ const navigateToRegister = () => {
                   </v-img>
                 </div>
 
-                <v-card-title class="pa-2 text--primary title-container">{{ form.title }}</v-card-title>
+                <v-card-title class="pa-2 text--primary title-container">{{ post.title }}</v-card-title>
 
                 <v-card-text class="pa-2 text--primary content-container">
-                  {{ form.content }}
+                  {{ post.content }}
                 </v-card-text>
 
                 <VCardItem class="pa-2 text--primary">
                   <VCardTitle class="user-name" @click.stop>
-                    <a class="author-link" @click="navigateToAuthor(form.user_id)" target="_blank">
-                      {{ getUserFullName(form.user_id) }}
+                    <a class="author-link" @click="navigateToAuthor(post.user_id)" target="_blank">
+                      {{ getUserFullName(post.user_id) }}
                     </a>
                   </VCardTitle>
                   <VCardSubtitle class="post-date">
-                    {{ tarihFormat(form.created_at) }}
+                    {{ tarihFormat(post.created_at) }}
                   </VCardSubtitle>
                 </VCardItem>
 
@@ -458,18 +450,18 @@ const navigateToRegister = () => {
                   <VBtn
                       variant="text"
                       prepend-icon="tabler-heart"
-                      :color="isLikedByUser(form.likes) ? 'error' : 'default'"
-                      @click="handleLike(form.id, form)"
+                      :color="isLikedByUser(post.likes) ? 'error' : 'default'"
+                      @click="handleLike(post.id, post)"
                   >
-                    {{ form.like_count }}
+                    {{ post.like_count }}
                   </VBtn>
                   <VBtn
                       variant="text"
                       prepend-icon="tabler-message-circle"
-                      @click="navigateToPost(form.id)"
+                      @click="navigateToPost(post.id)"
                       color="default"
                   >
-                    {{ form.comment_count }}
+                    {{ post.comment_count }}
                   </VBtn>
                 </v-card-actions>
               </v-card>
@@ -666,6 +658,7 @@ const navigateToRegister = () => {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   font-size: 1.1rem;
   line-height: 1.4;
@@ -676,6 +669,7 @@ const navigateToRegister = () => {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   font-size: 0.9rem;
   line-height: 1.4;

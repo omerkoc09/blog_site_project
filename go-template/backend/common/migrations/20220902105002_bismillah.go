@@ -15,6 +15,7 @@ func init() {
 		&migration.Post{},
 		&migration.Comment{},
 		&migration.Like{},
+		&migration.Follow{},
 	}
 
 	up := func(ctx context.Context, db *bun.DB) error {
