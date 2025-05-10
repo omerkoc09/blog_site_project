@@ -1,3 +1,3 @@
-module go-template
+ module go-template
 
 go 1.23

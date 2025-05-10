@@ -25,6 +25,14 @@ type Ctx struct {
 	*fiber.Ctx
 }
 
+func (c *Ctx) Form(s string) any {
+	panic("unimplemented")
+}
+
+func (c *Ctx) FormValues(s string) any {
+	panic("unimplemented")
+}
+
 func (c *Ctx) SuccessResponse(data interface{}, dataCount ...int) error {
 	m := &viewmodel.ResponseModel{
 		Data: data,

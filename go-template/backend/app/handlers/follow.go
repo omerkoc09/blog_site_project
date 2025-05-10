@@ -92,15 +92,16 @@ func (h FollowHandler) GetFollowing(ctx *app.Ctx) error {
 		return err
 	}
 
-	// Convert users to the appropriate view model
-	userInfos := make([]viewmodel.UserInfo, len(users))
+	// Sadece kullanıcı ID'lerini toplayalım
+	followingIDs := make([]int64, len(users))
 	for i, user := range users {
-		userInfos[i] = viewmodel.UserToUserInfo(user)
+		followingIDs[i] = user.ID
 	}
 
-	result := viewmodel.FollowingListVM{
-		Count:     len(userInfos),
-		Following: userInfos,
+	// ID'leri içeren yanıt oluşturalım
+	result := viewmodel.FollowingListID{
+		Count:     len(followingIDs),
+		Following: followingIDs,
 	}
 
 	return ctx.SuccessResponse(result)

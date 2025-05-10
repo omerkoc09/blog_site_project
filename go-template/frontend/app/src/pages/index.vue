@@ -1,16 +1,31 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/store/user'
 import tarihFormat from '@/utils/ExDate'
 import ApiService from '@/services/ApiService'
-import { ErrorPopup, WarningPopup } from '@/utils/Popup'
+import { ErrorPopup, WarningPopup, SuccessPopup } from '@/utils/Popup'
 import { router } from '@/plugins/1.router'
 import apiService from "@/services/ApiService";
 import Pagination from '@/components/Pagination.vue'
-import AppBar from '@/components/AppBar.vue'
+import { useFollow } from '@/composables/useFollowService'
+const { followers, fetchFollowings } = useFollow()
 
+// Prop olarak modal durumunu alabiliriz (layout tarafında yönetiliyor)
+const props = defineProps({
+  showAddModal: {
+    type: Boolean,
+    default: false
+  }
+})
 
+// Emit tanımlayalım ki parent komponenti güncelleyebilelim
+const emit = defineEmits(['update:showAddModal'])
 
+// showEditModal değişkenini prop ile senkronize edelim
+const showEditModal = computed({
+  get: () => props.showAddModal,
+  set: (value) => emit('update:showAddModal', value)
+})
 
 interface Like {
   id: number
@@ -87,23 +102,38 @@ const navigateToAuthor = (userId: number) => {
 }
 
 const isLikedByUser = (likes: Like[]) => {
-  return likes.some((like: Like) => like.user_id === userStore.user.id)
+  if (!likes || !Array.isArray(likes) || !userStore.isAuthenticated) {
+    return false;
+  }
+  return likes.some((like: Like) => like && like.user_id === userStore.user.id);
 }
 
 const handleLike = async (postId: number, post: any) => {
+  if (!userStore.isAuthenticated) {
+    ErrorPopup('Beğenmek için giriş yapmalısınız');
+    return;
+  }
+  
   const [error] = await ApiService.post(`like/${postId}`, {})
 
   if (!error) {
+    // Initialize post.likes if it doesn't exist
+    if (!post.likes || !Array.isArray(post.likes)) {
+      post.likes = [];
+    }
+    
     // Yerel state'i güncelle
     if (isLikedByUser(post.likes)) {
       // Eğer kullanıcı zaten beğenmişse, beğeniyi kaldır
       post.likes = post.likes.filter((like: { user_id: any }) => like.user_id !== userStore.user.id)
-      post.like_count--
+      post.like_count = (post.like_count || 0) - 1;
     } else {
       // Beğeni ekle
       post.likes.push({ user_id: userStore.user.id })
-      post.like_count++
+      post.like_count = (post.like_count || 0) + 1;
     }
+  } else {
+    ErrorPopup('Beğeni işlemi sırasında bir hata oluştu: ' + error);
   }
 }
 
@@ -113,18 +143,30 @@ const handleShowAddModal = () => {
 
 // Kullanıcıları yükleyecek fonksiyon
 const loadUsers = async () => {
-  const [error, response] = await ApiService.get<MyUser[]>('user')
-  if (!error) {
-    users.value = response.data
+  try {
+    const [error, response] = await ApiService.get<MyUser[]>('user');
+    if (!error && response?.data) {
+      users.value = response.data || [];
+    } else if (error) {
+      console.error('Error loading users:', error);
+      users.value = [];
+    }
+  } catch (err) {
+    console.error('Exception loading users:', err);
+    users.value = [];
   }
-
-  console.log('users', users.value)
+  
+  console.log('users', users.value);
 }
 
 // Post veya yorum sahibinin adını getiren fonksiyon
 const getUserFullName = (userId: number) => {
-  const user = users.value.find(u => u.id === userId)
-  return user ? `${user.name} ${user.surname}` : 'Bilinmeyen Kullanıcı'
+  if (!users.value || !Array.isArray(users.value)) {
+    return 'Bilinmeyen Kullanıcı';
+  }
+  
+  const user = users.value.find(u => u && u.id === userId);
+  return user ? `${user.name || ''} ${user.surname || ''}`.trim() : 'Bilinmeyen Kullanıcı';
 }
 
 
@@ -143,10 +185,9 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 const imagePreview = ref<string | null>(null)
 const selectedFile = ref<File | null>(null)
-const showEditModal = ref(false)
 const loading = ref(false)
 const updateLoading = ref(false)
-
+const tab = ref<number>(1)
 
 // Resim yükleme fonksiyonları
 const triggerFileInput = () => {
@@ -190,21 +231,156 @@ const removeImage = () => {
     fileInput.value.value = ''
   }
 }
-
-
 const posts = ref<Post[]>([]);
- onMounted(async () => {
-   try {
-     const  [err, response] = await apiService.get<any>(`post`); // Backend URL'ni ekle
-     if(err) return
-     posts.value = response.data;
-     console.log('posts value:', posts.value)
-   } catch (error) {
-     console.error("Veri alınırken hata oluştu:", error);
-   }
+const savedPosts = ref<Post[]>([]);
+const postSavedStatus = ref<{[key: number]: boolean}>({});
 
-   await loadUsers()
- })
+const filteredPosts = computed(() => {
+  if (!posts.value) {
+    return tab.value === 4 ? savedPosts.value || [] : [];
+  }
+  
+  if(tab.value == 1) {
+    return posts.value;
+  }
+  else if(tab.value == 2) {
+    return userStore.isAuthenticated && userStore.user?.id ? 
+      posts.value.filter(post => post.user_id == userStore.user.id) : [];
+  }
+  else if(tab.value == 3) {
+    return posts.value.filter(post => followers.value?.includes(post.user_id) || false);
+  }
+  else if(tab.value == 4) {
+    return savedPosts.value || [];
+  }
+  return posts.value;
+})
+
+const isSavedByUser = (postId: number) => {
+  return !!postSavedStatus.value[postId];
+}
+
+const handleSave = async (postId: number, event: MouseEvent) => {
+  // Stop event propagation to prevent navigating to post detail
+  event.stopPropagation();
+  
+  if (!userStore.isAuthenticated) {
+    ErrorPopup('Kaydetmek için giriş yapmalısınız');
+    return;
+  }
+  
+  const [error] = await ApiService.post(`saved/${postId}`, {});
+  
+  if (!error) {
+    // Update local state
+    postSavedStatus.value[postId] = !postSavedStatus.value[postId];
+    
+    // If we're in saved tab, we might need to refresh the list
+    if (tab.value === 4 && !postSavedStatus.value[postId]) {
+      loadSavedPosts();
+    }
+  } else {
+    ErrorPopup('Bir hata oluştu: ' + error);
+  }
+}
+
+const loadSavedPosts = async () => {
+  if (!userStore.isAuthenticated) {
+    savedPosts.value = [];
+    return;
+  }
+  
+  try {
+    const [error, response] = await ApiService.get<any>('saved');
+    if (!error && response?.data) {
+      savedPosts.value = response.data || [];
+      
+      // Update the saved status for each post
+      savedPosts.value.forEach(post => {
+        if (post && post.id) {
+          postSavedStatus.value[post.id] = true;
+        }
+      });
+    } else if (error) {
+      console.error('Error loading saved posts:', error);
+      ErrorPopup('Kaydedilen gönderiler yüklenirken hata oluştu: ' + error);
+      savedPosts.value = [];
+    }
+  } catch (err) {
+    console.error('Exception loading saved posts:', err);
+    savedPosts.value = [];
+  }
+}
+
+onMounted(async () => {
+  try {
+    const [err, response] = await apiService.get<any>(`post`);
+    if (err) {
+      console.error("Error loading posts:", err);
+      posts.value = [];
+      return;
+    }
+    
+    if (response?.data) {
+      posts.value = response.data;
+      console.log('Posts loaded:', posts.value?.length || 0);
+    } else {
+      console.warn("No posts data returned from API");
+      posts.value = [];
+    }
+  } catch (error) {
+    console.error("Veri alınırken hata oluştu:", error);
+    posts.value = [];
+  }
+
+  await loadUsers();
+  
+  if (userStore.isAuthenticated && userStore.user?.id) {
+    console.log('Kullanıcı giriş yapmış, takip edilenleri yüklüyorum...')
+    await fetchFollowings(userStore.user.id)
+    await loadSavedPosts()
+  } else {
+    console.log('Kullanıcı giriş yapmamış, takip edilenler yüklenmiyor')
+  }
+})
+
+watch(tab, async (newValue) => {
+  console.log('Tab değişti:', newValue)
+  
+  if (newValue === 3) {
+    if (userStore.isAuthenticated && userStore.user?.id) {
+      console.log('Following tabına geçildi, takip edilenleri yüklüyorum...')
+      await fetchFollowings(userStore.user.id)
+    } else {
+      console.warn('Kullanıcı giriş yapmamış, takip edilenler yüklenemiyor')
+      ErrorPopup('Bu özelliği kullanmak için giriş yapmalısınız')
+      tab.value = 1 // Redirect to Explore tab
+    }
+  } else if (newValue === 4) {
+    if (userStore.isAuthenticated && userStore.user?.id) {
+      console.log('Kaydedilenler tabına geçildi, kaydedilen gönderileri yüklüyorum...')
+      await loadSavedPosts()
+    } else {
+      console.warn('Kullanıcı giriş yapmamış, kaydedilen gönderiler yüklenemiyor')
+      ErrorPopup('Bu özelliği kullanmak için giriş yapmalısınız')
+      tab.value = 1 // Redirect to Explore tab
+    }
+  }
+})
+
+watch(() => userStore.isAuthenticated, async (isLoggedIn) => {
+  if (isLoggedIn && userStore.user?.id) {
+    console.log('Kullanıcı girişi tespit edildi, veri yükleniyor...')
+    if (tab.value === 3) {
+      await fetchFollowings(userStore.user.id)
+    } else if (tab.value === 4) {
+      await loadSavedPosts()
+    }
+  } else {
+    savedPosts.value = []
+    postSavedStatus.value = {}
+  }
+})
 
 const onSubmit = async () => {
   if (!form.value.title || !form.value.content || !form.value.main_content) {
@@ -216,10 +392,8 @@ const onSubmit = async () => {
   loading.value = true
 
   try {
-    // FormData oluştur
     const formData = new FormData()
 
-    // Form verilerini ekle
     formData.append('title', form.value.title)
     formData.append('content', form.value.content)
     formData.append('main_content', form.value.main_content)
@@ -229,7 +403,6 @@ const onSubmit = async () => {
       formData.append('image', selectedFile.value)
     }
 
-    // Form verilerini ve resmi tek istekte gönder
     const [error, resp] = await ApiService.post(
         'post/image',
         formData
@@ -243,7 +416,6 @@ const onSubmit = async () => {
     showEditModal.value = false
     SuccessPopup('Gönderi başarıyla eklendi')
 
-    // Formu sıfırla
     form.value = {
       id: 0,
       title: '',
@@ -264,7 +436,6 @@ const onSubmit = async () => {
 
     removeImage()
 
-    // Postları yeniden yükle
     const [err, response] = await apiService.get<any>(`post`);
     if(!err) {
       posts.value = response.data;
@@ -287,78 +458,95 @@ const onPageChanged = (pageData: { page: number, items: Post[] }) => {
 
 
 <template>
+  <div>
+    <v-tabs
+        v-model="tab"
+        align-tabs="center"
+        color="deep-purple-accent-4"
+    >
+      <v-tab :value="1">Explore</v-tab>
+      <v-tab :value="2">My Posts</v-tab>
+      <v-tab :value="3">Following</v-tab>
+      <v-tab :value="4">Saved</v-tab>
+    </v-tabs>
 
-   <AppBar @showAddModal="handleShowAddModal" />
+    <div class="post-list">
+      <v-container>
+        <Pagination :items="filteredPosts" :items-per-page="12" @page-changed="onPageChanged">
+          <template #default="{ items: paginatedPosts }">
+            <v-row>
+              <v-col v-for="post in paginatedPosts as Post[]" :key="post.id" cols="12" md="6" lg="4">
+                <v-card class="mx-auto post-card" max-width="400" @click="navigateToPost(post.id)">
+                  <div class="image-container">
+                    <v-img
+                        v-if="post.image"
+                        :src="`http://localhost:3001/${post.image}`"
+                        :alt="post.title"
+                        height="200"
+                        cover
+                    />
+                    <v-img
+                        v-else
+                        src="@/assets/placeholder.jpg"
+                        height="200"
+                        cover
+                        class="grey darken-3"
+                    >
+                      <div class="d-flex justify-center align-center fill-height">
+                        <v-icon size="48" color="grey">tabler-photo</v-icon>
+                      </div>
+                    </v-img>
+                  </div>
 
-  <div class="post-list">
-    <v-container>
-      <Pagination :items="posts" :items-per-page="12" @page-changed="onPageChanged">
-        <template #default="{ items: paginatedPosts }">
-          <v-row>
-            <v-col v-for="post in paginatedPosts as Post[]" :key="post.id" cols="12" md="6" lg="4">
-              <v-card class="mx-auto post-card" max-width="400" @click="navigateToPost(post.id)">
-                <div class="image-container">
-                  <v-img
-                      v-if="post.image"
-                      :src="`http://localhost:3001/${post.image}`"
-                      :alt="post.title"
-                      height="200"
-                      cover
-                  />
-                  <v-img
-                      v-else
-                      src="@/assets/placeholder.jpg"
-                      height="200"
-                      cover
-                      class="grey darken-3"
-                  >
-                    <div class="d-flex justify-center align-center fill-height">
-                      <v-icon size="48" color="grey">tabler-photo</v-icon>
-                    </div>
-                  </v-img>
-                </div>
+                  <v-card-title class="pa-2 text--primary title-container">{{ post.title }}</v-card-title>
 
-                <v-card-title class="pa-2 text--primary title-container">{{ post.title }}</v-card-title>
+                  <v-card-text class="pa-2 text--primary content-container">
+                    {{ post.content }}
+                  </v-card-text>
 
-                <v-card-text class="pa-2 text--primary content-container">
-                  {{ post.content }}
-                </v-card-text>
+                  <VCardItem class="pa-2 text--primary">
+                    <VCardTitle class="user-name" @click.stop>
+                      <a class="author-link" @click="navigateToAuthor(post.user_id)" target="_blank">
+                        {{ getUserFullName(post.user_id) }}
+                      </a>
+                    </VCardTitle>
+                    <VCardSubtitle class="post-date">
+                      {{ tarihFormat(post.created_at) }}
+                    </VCardSubtitle>
+                  </VCardItem>
 
-                <VCardItem class="pa-2 text--primary">
-                  <VCardTitle class="user-name" @click.stop>
-                    <a class="author-link" @click="navigateToAuthor(post.user_id)" target="_blank">
-                      {{ getUserFullName(post.user_id) }}
-                    </a>
-                  </VCardTitle>
-                  <VCardSubtitle class="post-date">
-                    {{ tarihFormat(post.created_at) }}
-                  </VCardSubtitle>
-                </VCardItem>
-
-                <v-card-actions @click.stop>
-                  <VBtn
-                      variant="text"
-                      prepend-icon="tabler-heart"
-                      :color="isLikedByUser(post.likes) ? 'error' : 'default'"
-                      @click="handleLike(post.id, post)"
-                  >
-                    {{ post.like_count }}
-                  </VBtn>
-                  <VBtn
-                      variant="text"
-                      prepend-icon="tabler-message-circle"
-                      @click="navigateToPost(post.id)"
-                      color="default"
-                  >
-                    {{ post.comment_count }}
-                  </VBtn>
-                </v-card-actions>
-              </v-card>
-            </v-col>
-          </v-row>
-        </template>
-      </Pagination>
-    </v-container>
+                  <v-card-actions @click.stop>
+                    <VBtn
+                        variant="text"
+                        prepend-icon="tabler-heart"
+                        :color="isLikedByUser(post.likes) ? 'error' : 'default'"
+                        @click="handleLike(post.id, post)"
+                    >
+                      
+                    </VBtn>
+                    <VBtn
+                        variant="text"
+                        prepend-icon="tabler-message-circle"
+                        @click="navigateToPost(post.id)"
+                        color="default"
+                    >
+                      {{ post.comment_count }}
+                    </VBtn>
+                    <VSpacer />
+                    <VBtn
+                        variant="text"
+                        :prepend-icon="isSavedByUser(post.id) ? 'tabler-bookmark-filled' : 'tabler-bookmark'"
+                        :color="isSavedByUser(post.id) ? 'primary' : 'default'"
+                        @click="(e: MouseEvent) => handleSave(post.id, e)"
+                    />
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </v-row>
+          </template>
+        </Pagination>
+      </v-container>
+    </div>
   </div>
 
   <VDialog v-model="showEditModal" max-width="600px">
@@ -496,7 +684,7 @@ const onPageChanged = (pageData: { page: number, items: Post[] }) => {
   right: 8px;
 }
 .post-list {
-  padding: 80px;
+  padding: 20px;
 }
 
 .user-info {
@@ -570,5 +758,5 @@ const onPageChanged = (pageData: { page: number, items: Post[] }) => {
 <route lang="yaml">
 meta:
   auth: false
-  layout: blank
+  layout: default
 </route>

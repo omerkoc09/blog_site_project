@@ -28,6 +28,7 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	commentService := service.NewCommentService(app.DB)
 	likeService := service.NewLikeService(app.DB)
 	followService := service.NewFollowService(app.DB)
+	savedService := service.NewSavedService(app.DB)
 
 	authHandler := handlers.NewAuthHandler(authService, userService, *tokenService)
 	userHandler := handlers.NewUserHandler(userService)
@@ -35,6 +36,7 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	commentHandler := handlers.NewCommentHandler(commentService)
 	likeHandler := handlers.NewLikeHandler(likeService)
 	followHandler := handlers.NewFollowHandler(followService)
+	savedHandler := handlers.NewSavedHandler(savedService)
 
 	router.Post(api, "/auth/login", authHandler.Login)
 	router.Post(api, "/auth/refresh", authHandler.RefreshToken)
@@ -49,6 +51,7 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Get(api, "/user", userHandler.Query)
 	router.Get(api, "/user_guest/:id", userHandler.GetByID)
 	router.Get(api, "/followers/:id", followHandler.GetFollowers)
+	router.Get(api, "/followings/:id", followHandler.GetFollowing)
 
 	api.Use(router.JWTMiddleware(app))
 
@@ -74,4 +77,9 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Post(api, "/follow/:id", followHandler.Follow)
 	router.Delete(api, "/follow/:id", followHandler.Unfollow)
 	router.Get(api, "/following/:id", followHandler.GetFollowing)
+
+	// Register saved routes
+	router.Post(api, "/saved/:id", savedHandler.ToggleSaved)
+	router.Get(api, "/saved", savedHandler.GetSavedPosts)
+	router.Get(api, "/saved/:id", savedHandler.IsSaved)
 }

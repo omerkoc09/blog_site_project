@@ -22,6 +22,7 @@ type User struct {
 	Posts    []Post    `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"posts"`
 	Comments []Comment `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"comments"`
 	Likes    []Like    `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"likes"`
+	Saved    []Saved   `bun:"rel:has-many,join:id=user_id,on_delete:cascade" json:"saved"`
 }
 
 func (User) ModelName() string {

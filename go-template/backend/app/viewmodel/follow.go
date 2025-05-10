@@ -39,6 +39,12 @@ type FollowingListVM struct {
 	Following []UserInfo `json:"following"`
 }
 
+// FollowingListID sadece takip edilen kullanıcıların ID'lerini içerir
+type FollowingListID struct {
+	Count     int     `json:"count"`
+	Following []int64 `json:"following"` // Sadece kullanıcı ID'leri
+}
+
 // UserInfo is a simplified user structure for follow relations
 type UserInfo struct {
 	ID      int64  `json:"id"`

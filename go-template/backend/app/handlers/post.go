@@ -151,8 +151,9 @@ func (h PostHandler) CreatePostWithImage(ctx *app.Ctx) error {
 	title := ctx.FormValue("title")
 	content := ctx.FormValue("content")
 	mainContent := ctx.FormValue("main_content")
-	userIDStr := "1"
+	userIDStr := ctx.FormValue("user_id")
 	userID, err := strconv.Atoi(userIDStr)
+
 	if err != nil {
 		return errorsx.BadRequestError("Geçerli bir kullanıcı ID'si giriniz: " + err.Error())
 	}

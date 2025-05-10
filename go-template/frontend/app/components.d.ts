@@ -10,6 +10,7 @@ declare module 'vue' {
     AppBar: typeof import('./src/components/AppBar.vue')['default']
     AppLoadingIndicator: typeof import('./src/@core/components/app-form-elements/AppLoadingIndicator.vue')['default']
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
+    IconBtn: typeof import('./src/@core/components/IconBtn.vue')['default']
     ImageUploader: typeof import('./src/components/ImageUploader.vue')['default']
     Pagination: typeof import('./src/components/Pagination.vue')['default']
     PostForm: typeof import('./src/components/PostForm.vue')['default']

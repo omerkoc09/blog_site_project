@@ -3,12 +3,14 @@ import { ref } from "vue";
 import { router } from "@/plugins/1.router";
 import { ErrorPopup } from "@/utils/Popup";
 import { useUserStore } from "@/store/user";
+import JwtService from "@/services/JwtService";
 
 export function useFollow() {
   const followLoading = ref(false);
   const isFollowing = ref(false);
   const followerCount = ref(0);
-  
+  const followers = ref<number[]>([])
+
   const fetchFollowerCount = async (userId: string | number) => {
     try {
       const [err, response] = await apiService.get<any>(`followers/${userId}`);
@@ -24,11 +26,11 @@ export function useFollow() {
     const userStore = useUserStore();
     // Only check if user is logged in
     if (!userStore.user.id) return;
-    
+
     try {
       const [err, response] = await apiService.get<any>(`followers/${userId}`);
       if(err) return;
-      
+
       const followers = response.data.followers || [];
       isFollowing.value = followers.some((follower: any) => follower.id === userStore.user.id);
       console.log('Is following:', isFollowing.value);
@@ -40,13 +42,13 @@ export function useFollow() {
   const toggleFollow = async (userId: string | number) => {
     const userStore = useUserStore();
     if (!userStore.user.id) {
-      router.push('/auth/login');
+      await router.push('/auth/login');
       return;
     }
-    
+
     try {
       followLoading.value = true;
-      
+
       if (isFollowing.value) {
         // Unfollow
         const [err] = await apiService.delete<any>(`follow/${userId}`);
@@ -70,12 +72,51 @@ export function useFollow() {
     }
   }
 
+  const fetchFollowings = async (userId: string | number) => {
+    try {
+      console.log('Fetching followers for user ID:', userId)
+      const userStore = useUserStore();
+      
+      // Kullanıcı giriş yapmış mı kontrol et
+      if (!userStore.isAuthenticated) {
+        console.warn('Kullanıcı giriş yapmamış, takip edilenler alınamıyor')
+        followers.value = []
+        return
+      }
+    
+      
+      const [err, response] = await apiService.get<any>(`followings/${userId}`)
+      if (err) {
+        console.error('Takip edilenler alınırken API hatası:', err)
+        followers.value = []
+        return
+      }
+      
+      
+      // Yeni API yanıt yapısı:
+      // { following: number[], count: number, error_code: number, error_message: string }
+      if (response && response.data && Array.isArray(response.data.following)) {
+        // Doğrudan ID dizisi alalım
+        followers.value = response.data.following
+        console.log('Takip edilen kullanıcı ID\'leri:', followers.value)
+      } else {
+        console.warn('API beklenmeyen format döndü:', response)
+        followers.value = []
+      }
+    } catch (error) {
+      console.error("Takip edilenler alınırken hata oluştu:", error)
+      followers.value = []
+    }
+  }
+
   return {
     followLoading,
     isFollowing,
     followerCount,
     fetchFollowerCount,
     checkIfFollowing,
-    toggleFollow
+    toggleFollow,
+    fetchFollowings,
+    followers
   };
 }
