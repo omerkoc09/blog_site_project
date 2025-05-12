@@ -29,6 +29,7 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	likeService := service.NewLikeService(app.DB)
 	followService := service.NewFollowService(app.DB)
 	savedService := service.NewSavedService(app.DB)
+	topicService := service.NewTopicService(app.DB)
 
 	authHandler := handlers.NewAuthHandler(authService, userService, *tokenService)
 	userHandler := handlers.NewUserHandler(userService)
@@ -37,6 +38,7 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	likeHandler := handlers.NewLikeHandler(likeService)
 	followHandler := handlers.NewFollowHandler(followService)
 	savedHandler := handlers.NewSavedHandler(savedService)
+	topicHandler := handlers.NewTopicHandler(topicService)
 
 	router.Post(api, "/auth/login", authHandler.Login)
 	router.Post(api, "/auth/refresh", authHandler.RefreshToken)
@@ -82,4 +84,14 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Post(api, "/saved/:id", savedHandler.ToggleSaved)
 	router.Get(api, "/saved", savedHandler.GetSavedPosts)
 	router.Get(api, "/saved/:id", savedHandler.IsSaved)
+
+	// Topic endpoints
+	router.Post(api, "/topic", topicHandler.Create)
+	router.Get(api, "/topic", topicHandler.Query)
+	router.Get(api, "/topic/:id", topicHandler.GetByID)
+	router.Put(api, "/topic/:id", topicHandler.Update)
+	router.Delete(api, "/topic/:id", topicHandler.Delete)
+
+	router.Get(api, "/post/:id/topics", postHandler.GetTopicsByPostID)
+
 }

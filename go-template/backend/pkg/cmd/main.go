@@ -10,6 +10,7 @@ import (
 
 	"github.com/hayrat/go-template2/backend/common/fixture"
 	"github.com/hayrat/go-template2/backend/common/migrations"
+	_ "github.com/hayrat/go-template2/backend/common/migrations/20220902105002_bismillah"
 	"github.com/hayrat/go-template2/backend/pkg/config"
 	"github.com/hayrat/go-template2/backend/pkg/database"
 )

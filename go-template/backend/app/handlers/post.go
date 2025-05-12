@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hayrat/go-template2/backend/app/viewmodel"
@@ -147,12 +148,21 @@ func (h PostHandler) Query(ctx *app.Ctx) error {
 }
 
 func (h PostHandler) CreatePostWithImage(ctx *app.Ctx) error {
+
 	// Form verilerini al
 	title := ctx.FormValue("title")
 	content := ctx.FormValue("content")
 	mainContent := ctx.FormValue("main_content")
 	userIDStr := ctx.FormValue("user_id")
 	userID, err := strconv.Atoi(userIDStr)
+	topicIdsStr := ctx.FormValue("topic_ids")
+	var topicIds []int64
+	if topicIdsStr != "" {
+		for _, idStr := range strings.Split(topicIdsStr, ",") {
+			id, _ := strconv.ParseInt(idStr, 10, 64)
+			topicIds = append(topicIds, id)
+		}
+	}
 
 	if err != nil {
 		return errorsx.BadRequestError("Geçerli bir kullanıcı ID'si giriniz: " + err.Error())
@@ -175,6 +185,18 @@ func (h PostHandler) CreatePostWithImage(ctx *app.Ctx) error {
 	err = h.postService.Create(ctx.Context(), &post)
 	if err != nil {
 		return errorsx.InternalError(err, "Post oluşturulamadı.")
+	}
+
+	// Topic ilişkilerini kaydet
+	if len(topicIds) > 0 {
+		if ps, ok := h.postService.(*service.PostService); ok {
+			for _, topicId := range topicIds {
+				postTopic := model.PostTopic{PostID: post.ID, TopicID: topicId}
+				if _, err := ps.DB.NewInsert().Model(&postTopic).Exec(ctx.Context()); err != nil {
+					return errorsx.InternalError(err, "Post-topic ilişkisi eklenemedi.")
+				}
+			}
+		}
 	}
 
 	// **Resim ekleme işlemi**
@@ -218,4 +240,29 @@ func (h PostHandler) CreatePostWithImage(ctx *app.Ctx) error {
 
 	// Başarı cevabı
 	return ctx.JSON(post)
+}
+
+// Belirli bir post_id için ilişkili topic'leri döndüren endpoint
+func (h PostHandler) GetTopicsByPostID(ctx *app.Ctx) error {
+	postID := ctx.ParamsInt64("id")
+	if postID == 0 {
+		return errorsx.BadRequestError("Geçersiz post ID")
+	}
+
+	db := h.postService.(*service.PostService).DB
+	type TopicResult struct {
+		ID   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+	var topics []TopicResult
+	err := db.NewSelect().
+		Model((*model.PostTopic)(nil)).
+		ColumnExpr("topic.id, topic.name").
+		Join("JOIN topic ON topic.id = post_topic.topic_id").
+		Where("post_topic.post_id = ?", postID).
+		Scan(ctx.Context(), &topics)
+	if err != nil {
+		return errorsx.InternalError(err, "Topic'ler çekilemedi")
+	}
+	return ctx.JSON(topics)
 }

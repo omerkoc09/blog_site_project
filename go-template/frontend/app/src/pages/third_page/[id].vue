@@ -7,6 +7,7 @@ import ImageUploader from '@/components/ImageUploader.vue'
 import { ref } from "vue"
 import { useFollow } from "@/composables/useFollowService";
 import AppBar from '@/components/AppBar.vue'
+import { nextTick } from 'vue'
 
 interface Like {
   id: number
@@ -40,6 +41,11 @@ interface Post {
     name: string
     surname: string
   }
+  topics: {
+    id: number
+    name: string
+  }[]
+  topic_name?: string
 }
 
 interface MyUser {
@@ -81,7 +87,8 @@ const form = ref<Post>({
   user: {
     name: '',
     surname: ''
-  }
+  },
+  topics: []
 
 })
 
@@ -302,6 +309,7 @@ onMounted(async () => {
 
   loading.value = true
   const [err, data] = await ApiService.get<any>(`post/${postId.value}`)
+  
   loading.value = false
   console.log('Post Verisi:', data)  // Gelen veriyi kontrol et    
   console.log('Post ID:', postId.value)
@@ -312,6 +320,9 @@ onMounted(async () => {
   likeCount.value = form.value.likes.length
   commentCount.value = form.value.comments.length
   loadUsers()
+  await nextTick()
+  await getTopics()
+  console.log('form.value.topics', form.value.topics)
 
   console.log('form value', form.value)
 
@@ -380,12 +391,6 @@ const updatePost = async () => {
 
 const bottomRef = ref<HTMLElement | null>(null)
 
-const isAuthenticated = () => {
-  if (!userStore.isAuthenticated) {
-    ErrorPopup('Bu işlemi yapabilmek için giriş yapmanız gerekmektedir.')
-    return
-  }
-}
 
 const navigateToAuthor = (userId: number) => {
   router.push(`../author/${userId}`)
@@ -401,22 +406,41 @@ const scrollToBottom = () => {
   bottomRef.value?.scrollIntoView({ behavior: "smooth" })
 }
 
-// Çıkış yapma fonksiyonu
-const logout =  () => {
+const getTopics = async () => {
+  console.log('getTopics çağrıldı, form.value.id:', form.value.id)
   try {
-    useUserStore().logout()
-    router.push('/')
-  } catch (error) {
-    ErrorPopup('Çıkış yapılırken bir hata oluştu')
+    const [error, response] = await ApiService.get<any>(`post/${form.value.id}/topics`)
+    
+    console.log('GET topics full response:', response)
+    
+    // Response doğrudan bir array ise (response.data değil)
+    if (Array.isArray(response)) {
+      console.log('Response doğrudan bir array, eleman sayısı:', response.length)
+      
+      if (response.length > 0) {
+        form.value.topics = response
+        
+        // forEach ile topic'leri konsola yazdır
+        console.log('Topics:')
+        response.forEach((topic, index) => {
+          console.log(`Topic ${index + 1}: ID=${topic.id}, Name=${topic.name}`)
+        })
+        
+        console.log('Topics başarıyla yüklendi, toplam:', response.length)
+      } else {
+        console.log('Topics array boş')
+        form.value.topics = []
+      }
+    } else {
+      console.log('Response array değil, yapısı:', typeof response)
+      form.value.topics = []
+    }
+  } catch (err) {
+    console.error('Topics alınırken hata oluştu:', err)
+    form.value.topics = []
   }
-}
-
-const navigateToLogin = () => {
-  router.push('../auth/login')
-}
-
-const navigateToRegister = () => {
-  router.push('../auth/register')
+  
+  console.log('getTopics fonksiyonu sonunda form.value.topics:', form.value.topics)
 }
 
 const { 
@@ -459,15 +483,26 @@ const {
           </VBtn>
         </VCardItem>
 
-        <!-- Post title -->
-        <VCardTitle class="text-h3 px-4 text-center text-wrap" :style="{
-          wordBreak: 'break-word',
-          whiteSpace: 'normal',
-          lineHeight: '1.2',
-          overflow: 'visible'
-        }">
+        <!-- Post title and content -->
+        <VCardTitle class="text-h5 mb-1 d-flex justify-space-between align-center">
           {{ form.title }}
+          <div v-if="isPostOwner" class="d-flex">
+            <VBtn icon="tabler-edit" variant="text" @click="showEditModal = true" />
+            <VBtn icon="tabler-trash" variant="text" color="error" @click="deleteConfirmDialog = true" />
+          </div>
         </VCardTitle>
+        
+        <!-- Topic bilgisi -->
+        <div v-if="form.topics && form.topics.length > 0" class="mb-2 px-4 d-flex flex-wrap">
+          <v-chip v-for="topic in form.topics" :key="topic.id" color="primary" size="small" class="mr-1 mb-1">
+            {{ topic.name }}
+          </v-chip>
+        </div>
+
+        <div class="px-4 mb-4">
+          <div class="text-body-1 mb-4 white-space-pre-wrap">{{ form.content }}</div>
+          <div class="text-body-1 white-space-pre-wrap">{{ form.main_content }}</div>
+        </div>
 
         <!-- User info and date -->
         <VCardItem>
@@ -519,23 +554,6 @@ const {
 
         <VCardText v-if="form.image" class="text-center">
           <img :src="`http://localhost:3001/${form.image}`" :alt="form.title" class="post-image" />
-        </VCardText>
-
-        <VCardText class="text-body-1 text-left" :style="{
-          fontSize: '1.5rem !important',
-          lineHeight: '1.5',
-          color: 'black',
-          whiteSpace: 'pre-wrap',
-          fontWeight: '400',
-          letterSpacing: '0.5px',
-          wordSpacing: '2px',
-          textTransform: 'none',
-          padding: '1rem',
-          margin: '1rem 0',
-          maxWidth: '100%',
-          overflowWrap: 'break-word'
-        }">
-          {{ form.main_content }}
         </VCardText>
 
         <VDivider />
@@ -665,7 +683,9 @@ const {
           </div>
         </div>
       </VExpandTransition>
-  </div>
+
+   </div>
+  
 
 </template>
 

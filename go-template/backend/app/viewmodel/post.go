@@ -1,30 +1,34 @@
 package viewmodel
 
 import (
-	"fmt"
-
 	"github.com/hayrat/go-template2/backend/common/model"
+	pkgModel "github.com/hayrat/go-template2/backend/pkg/model"
 )
 
 type PostCreateVM struct {
-	ID          int64  `json:"id"`
-	Title       string `json:"title"`
-	Content     string `json:"content"`
-	MainContent string `json:"main_content"`
-	Image       string `json:"image"`
-	UserId      int64  `json:"user_id"`
+	ID          int64   `json:"id"`
+	Title       string  `json:"title"`
+	Content     string  `json:"content"`
+	MainContent string  `json:"main_content"`
+	Image       string  `json:"image"`
+	UserId      int64   `json:"user_id"`
+	TopicIds    []int64 `json:"topic_ids"`
 }
 
 func (vm PostCreateVM) ToDBModel(m model.Post) model.Post {
-
-	fmt.Printf("Received PostCreateVM: %+v\n", vm)
-
 	m.ID = vm.ID
 	m.Title = vm.Title
 	m.Content = vm.Content
 	m.MainContent = vm.MainContent
 	m.Image = vm.Image
 	m.UserId = vm.UserId
+
+	if len(vm.TopicIds) > 0 {
+		m.Topics = make([]model.Topic, 0, len(vm.TopicIds))
+		for _, topicId := range vm.TopicIds {
+			m.Topics = append(m.Topics, model.Topic{BaseModel: pkgModel.BaseModel{ID: topicId}})
+		}
+	}
 
 	return m
 }

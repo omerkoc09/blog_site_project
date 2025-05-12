@@ -1,17 +1,16 @@
 package migration
 
-import "github.com/hayrat/go-template2/backend/common/model"
-
 type Post struct {
 	BaseModel
 
-	Title       string          `json:"title"`
-	Content     string          `json:"content"`
-	MainContent string          `json:"main_content"`
-	Image       string          `json:"image"`
-	UserID      int64           `json:"user_id" gorm:"foreignKey:PostId"`
-	Likes       []model.Like    `bun:"rel:has-many,join:id=post_id" json:"likes"`
-	Comments    []model.Comment `bun:"rel:has-many,join:id=post_id" json:"comments"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	MainContent string    `json:"main_content"`
+	Image       string    `json:"image"`
+	UserID      int64     `json:"user_id" gorm:"foreignKey:PostId"`
+	Likes       []Like    `bun:"rel:has-many,join:id=post_id" json:"likes"`
+	Comments    []Comment `bun:"rel:has-many,join:id=post_id" json:"comments"`
+	Topics      []Topic   `bun:"m2m:post_topic" json:"topics"`
 }
 
 func (Post) ModelName() string {

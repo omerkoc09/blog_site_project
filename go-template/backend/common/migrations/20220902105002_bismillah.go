@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	m := []interface{}{
+	m := []any{
 		&migration.User{},
 		&migration.AuthRefreshToken{},
 		&migration.Post{},
@@ -17,6 +17,8 @@ func init() {
 		&migration.Like{},
 		&migration.Follow{},
 		&migration.Saved{},
+		&migration.Topic{},
+		&migration.PostTopic{},
 	}
 
 	up := func(ctx context.Context, db *bun.DB) error {

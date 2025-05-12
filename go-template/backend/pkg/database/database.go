@@ -13,6 +13,7 @@ import (
 	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/schema"
 
+	migration "github.com/hayrat/go-template2/backend/common/migrations/20220902105002_bismillah"
 	"github.com/hayrat/go-template2/backend/pkg/config"
 )
 
@@ -46,6 +47,8 @@ func New(config config.DbConfig) *bun.DB {
 		fmt.Println(err)
 	}
 
+	db.RegisterModel((*migration.PostTopic)(nil))
+	db.RegisterModel((*migration.Topic)(nil))
 	db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(config.Debug)))
 
 	return db

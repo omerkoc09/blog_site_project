@@ -136,6 +136,7 @@ func (h BaseGetByIDHandler[T, DetailVM]) GetByID(ctx *app.Ctx) error {
 }
 
 func (h BaseCreateHandler[T, CreateVM]) Create(ctx *app.Ctx) error {
+
 	var m T
 	var vm CreateVM
 	if errs := ctx.BodyParseValidate(&vm); len(errs) > 0 {

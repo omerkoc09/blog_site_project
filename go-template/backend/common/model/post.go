@@ -12,6 +12,7 @@ type Post struct {
 	UserId      int64     `json:"user_id"`
 	Likes       []Like    `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"likes"`
 	Comments    []Comment `bun:"rel:has-many,join:id=post_id,on_delete:cascade" json:"comments"`
+	Topics      []Topic   `bun:"m2m:post_topic" json:"topics,omitempty"`
 }
 
 func (Post) ModelName() string {
