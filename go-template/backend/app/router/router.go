@@ -93,5 +93,5 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Delete(api, "/topic/:id", topicHandler.Delete)
 
 	router.Get(api, "/post/:id/topics", postHandler.GetTopicsByPostID)
-
+	router.Get(api, "/topic/:id/posts", topicHandler.GetPostsByTopicID)
 }

@@ -261,7 +261,7 @@ const likeCount = ref(0)
 const commentCount = ref(0)
 const userId = computed(() => (route.params as { id: string }).id)
 const selectedFile = ref<File | null>(null)
-const profileMenu = ref(false)
+const selectedTopicIds = ref<number[]>([])
 
 
 // Kullanıcı post sahibi mi kontrolü
@@ -328,6 +328,11 @@ onMounted(async () => {
 
   await fetchFollowerCount(userId.value);
   await checkIfFollowing(userId.value);
+  await loadTopics()
+
+  if (form.value.topics) {
+    selectedTopicIds.value = form.value.topics.map(t => t.id)
+  }
 
 
 })
@@ -353,9 +358,14 @@ const updatePost = async () => {
     formData.append('main_content', form.value.main_content)
     formData.append('user_id', String(userStore.user.id))
 
+
     // If there's a selected file, append it
     if (selectedFile.value) {
       formData.append('image', selectedFile.value)
+    }
+
+    if (selectedTopicIds.value.length > 0) {
+      formData.append('topic_ids', selectedTopicIds.value.join(','))
     }
 
     // FormData ile gönderirken Content-Type header'ı otomatik olarak ayarlanacak
@@ -443,6 +453,7 @@ const getTopics = async () => {
   console.log('getTopics fonksiyonu sonunda form.value.topics:', form.value.topics)
 }
 
+
 const { 
   followLoading, 
   isFollowing, 
@@ -452,6 +463,18 @@ const {
   toggleFollow 
 } = useFollow();
 
+const goToTopic = (topicId: any) => {
+  router.push({ path: '/', query: { topic: topicId } })
+}
+
+const topics = ref<{ id: number, name: string }[]>([])
+
+const loadTopics = async () => {
+  const [error, response] = await ApiService.get<any>('topic')
+  if (!error && response?.data) {
+    topics.value = response.data
+  }
+}
 
 
 </script>
@@ -483,24 +506,24 @@ const {
           </VBtn>
         </VCardItem>
 
-        <!-- Post title and content -->
-        <VCardTitle class="text-h5 mb-1 d-flex justify-space-between align-center">
-          {{ form.title }}
-          <div v-if="isPostOwner" class="d-flex">
-            <VBtn icon="tabler-edit" variant="text" @click="showEditModal = true" />
-            <VBtn icon="tabler-trash" variant="text" color="error" @click="deleteConfirmDialog = true" />
-          </div>
-        </VCardTitle>
         
         <!-- Topic bilgisi -->
         <div v-if="form.topics && form.topics.length > 0" class="mb-2 px-4 d-flex flex-wrap">
-          <v-chip v-for="topic in form.topics" :key="topic.id" color="primary" size="small" class="mr-1 mb-1">
-            {{ topic.name }}
-          </v-chip>
+          <v-chip
+  v-for="topic in form.topics"
+  :key="topic.id"
+  color="primary"
+  size="small"
+  class="mr-1 mb-1"
+  @click="goToTopic(topic.id)"
+>
+  {{ topic.name }}
+</v-chip>
         </div>
 
         <div class="px-4 mb-4">
-          <div class="text-body-1 mb-4 white-space-pre-wrap">{{ form.content }}</div>
+          <div class="text-h3 mb-1 d-flex justify-space-between align-center">{{ form.title }}</div>
+          <div class="text-h4 mb-1 d-flex justify-space-between align-center">{{ form.content }}</div>
           <div class="text-body-1 white-space-pre-wrap">{{ form.main_content }}</div>
         </div>
 
@@ -588,6 +611,20 @@ const {
                 <VTextarea v-model="form.main_content" label="Ana İçerik" :rules="[v => !!v || 'İçerik zorunludur']"
                   rows="6" auto-grow counter required />
               </VCol>
+              <VCol cols="12">
+  <v-select
+    v-model="selectedTopicIds"
+    :items="topics"
+    item-title="name"
+    item-value="id"
+    label="Topic Seç"
+    multiple
+    chips
+    clearable
+    
+  />
+</VCol>
+
             </VRow>
 
             <VCardActions class="pa-0 mt-4">

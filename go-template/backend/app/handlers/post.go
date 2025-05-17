@@ -122,6 +122,30 @@ func (h PostHandler) MeUpdateWithImage(ctx *app.Ctx) error {
 		return errorsx.InternalError(err, "Failed to update post")
 	}
 
+	// Topic güncelleme
+	topicIDsStr := ctx.FormValue("topic_ids")
+	var topicIDs []int64
+	if topicIDsStr != "" {
+		for _, idStr := range strings.Split(topicIDsStr, ",") {
+			id, _ := strconv.ParseInt(idStr, 10, 64)
+			topicIDs = append(topicIDs, id)
+		}
+	}
+	if len(topicIDs) > 0 {
+		if ps, ok := h.postService.(*service.PostService); ok {
+			// Eski ilişkileri sil
+			_, _ = ps.DB.NewDelete().
+				Model((*model.PostTopic)(nil)).
+				Where("post_id = ?", post.ID).
+				Exec(ctx.Context())
+			// Yeni ilişkileri ekle
+			for _, topicID := range topicIDs {
+				postTopic := model.PostTopic{PostID: post.ID, TopicID: topicID}
+				_, _ = ps.DB.NewInsert().Model(&postTopic).Exec(ctx.Context())
+			}
+		}
+	}
+
 	return ctx.SuccessResponse(post)
 }
 
@@ -258,7 +282,7 @@ func (h PostHandler) GetTopicsByPostID(ctx *app.Ctx) error {
 	err := db.NewSelect().
 		Model((*model.PostTopic)(nil)).
 		ColumnExpr("topic.id, topic.name").
-		Join("JOIN topic ON topic.id = post_topic.topic_id").
+		Join("JOIN topic ON topic.id = post_topic.topic_id AND topic.deleted_at IS NULL").
 		Where("post_topic.post_id = ?", postID).
 		Scan(ctx.Context(), &topics)
 	if err != nil {

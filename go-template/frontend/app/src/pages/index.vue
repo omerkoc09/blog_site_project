@@ -5,10 +5,12 @@ import tarihFormat from '@/utils/ExDate'
 import ApiService from '@/services/ApiService'
 import { ErrorPopup, WarningPopup, SuccessPopup } from '@/utils/Popup'
 import { router } from '@/plugins/1.router'
+import { useRoute } from 'vue-router'
 import apiService from "@/services/ApiService";
 import Pagination from '@/components/Pagination.vue'
 import { useFollow } from '@/composables/useFollowService'
 const { followers, fetchFollowings } = useFollow()
+const route = useRoute()
 
 // Prop olarak modal durumunu alabiliriz (layout tarafında yönetiliyor)
 const props = defineProps({
@@ -59,6 +61,7 @@ interface Post {
     name: string
     surname: string
   }
+  topics?: {id: number, name: string}[]  // Topic bilgisini ekleyelim
 }
 
 // Interface ekleyelim
@@ -170,16 +173,6 @@ const getUserFullName = (userId: number) => {
 }
 
 
-// Çıkış yapma fonksiyonu
-const logout =  () => {
-  try {
-    useUserStore().logout()
-    router.push('/')
-  } catch (error) {
-    ErrorPopup('Çıkış yapılırken bir hata oluştu')
-  }
-}
-
 // Resim yükleme için gerekli değişkenler
 const fileInput = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
@@ -235,25 +228,90 @@ const posts = ref<Post[]>([]);
 const savedPosts = ref<Post[]>([]);
 const postSavedStatus = ref<{[key: number]: boolean}>({});
 
+// Topic için gerekli state değişkenlerini ekleyelim
+const selectedTopicId = ref<number | null>(null)
+const topics = ref<{ id: number, name: string }[]>([])
+const selectedTopicIds = ref<number[]>([])
+
+// Topic yükleme fonksiyonu
+const loadTopics = async () => {
+  try {
+    const [error, response] = await ApiService.get<any>('topic')
+    if (!error && response?.data) {
+      topics.value = response.data || response
+    } else if (error) {
+      console.error('Error loading topics:', error)
+      topics.value = []
+    }
+  } catch (err) {
+    console.error('Exception loading topics:', err)
+    topics.value = []
+  }
+}
+
+// Post'ların topic'lerini yükle
+const loadPostTopics = async () => {
+  console.log('load post topics CALISTI')
+  console.log('posts.value', posts.value)
+  for (const post of posts.value) {
+    try {
+      const [error, response] = await ApiService.get<any>(`post/${post.id}/topics`)
+      if (!error && response) {
+        // API'nın response formatına göre doğru veriyi alın
+        const topicsData = response.data || response
+        console.log('topic data', topicsData)
+        post.topics = topicsData
+        
+        console.log('Topics:')
+        if (Array.isArray(topicsData)) {
+          topicsData.forEach((topic: any, index: number) => {
+            console.log(`Topic ${index + 1}: ID=${topic.id}, Name=${topic.name}`)
+          })
+        }
+      }
+    } catch (err) {
+      console.error(`Error loading topics for post ${post.id}:`, err)
+      post.topics = []
+    }
+  }
+}
+
+// Topic'leri temizle ve filtreyi kaldır
+const clearTopicFilter = () => {
+  selectedTopicId.value = null
+}
+
 const filteredPosts = computed(() => {
   if (!posts.value) {
     return tab.value === 4 ? savedPosts.value || [] : [];
   }
   
+  // İlk olarak tab filtrelemesini yapalım
+  let result = posts.value
+  
   if(tab.value == 1) {
-    return posts.value;
+    result = posts.value;
   }
   else if(tab.value == 2) {
-    return userStore.isAuthenticated && userStore.user?.id ? 
+    result = userStore.isAuthenticated && userStore.user?.id ? 
       posts.value.filter(post => post.user_id == userStore.user.id) : [];
   }
   else if(tab.value == 3) {
-    return posts.value.filter(post => followers.value?.includes(post.user_id) || false);
+    result = posts.value.filter(post => followers.value?.includes(post.user_id) || false);
   }
   else if(tab.value == 4) {
-    return savedPosts.value || [];
+    result = savedPosts.value || [];
   }
-  return posts.value;
+  
+  // Ardından topic filtresi uygulayalım (eğer bir topic seçildiyse)
+  if (selectedTopicId.value) {
+    console.log('SELECTED TOPIC ID', selectedTopicId.value)
+    result = result.filter(post => 
+      post.topics?.some(topic => topic.id === selectedTopicId.value)
+    )
+  }
+  
+  return result;
 })
 
 const isSavedByUser = (postId: number) => {
@@ -324,6 +382,8 @@ onMounted(async () => {
     if (response?.data) {
       posts.value = response.data;
       console.log('Posts loaded:', posts.value?.length || 0);
+      // Post'ların topic'lerini yükleyelim
+      await loadPostTopics();
     } else {
       console.warn("No posts data returned from API");
       posts.value = [];
@@ -334,6 +394,8 @@ onMounted(async () => {
   }
 
   await loadUsers();
+  // Topic'leri yükleyelim
+  await loadTopics();
   
   if (userStore.isAuthenticated && userStore.user?.id) {
     console.log('Kullanıcı giriş yapmış, takip edilenleri yüklüyorum...')
@@ -341,6 +403,10 @@ onMounted(async () => {
     await loadSavedPosts()
   } else {
     console.log('Kullanıcı giriş yapmamış, takip edilenler yüklenmiyor')
+  }
+
+  if (route.query.topic) {
+    selectedTopicId.value = Number(route.query.topic)
   }
 })
 
@@ -398,6 +464,9 @@ const onSubmit = async () => {
     formData.append('content', form.value.content)
     formData.append('main_content', form.value.main_content)
     formData.append('user_id', String(userStore.user.id))
+    if (selectedTopicIds.value.length > 0) {
+  formData.append('topic_ids', selectedTopicIds.value.join(','))
+}
 
     if (selectedFile.value) {
       formData.append('image', selectedFile.value)
@@ -469,6 +538,24 @@ const onPageChanged = (pageData: { page: number, items: Post[] }) => {
       <v-tab :value="3">Following</v-tab>
       <v-tab :value="4">Saved</v-tab>
     </v-tabs>
+    
+    <!-- Topic filtreleme alanı ekleyelim -->
+    <div class="topic-filter-container">
+      <v-select
+        v-model="selectedTopicId"
+        :items="topics"
+        item-title="name"
+        item-value="id"
+        label="Filter by Topic"
+        clearable
+        @click:clear="clearTopicFilter"
+        class="topic-filter"
+      >
+        <template v-slot:prepend>
+          <v-icon>tabler-tag</v-icon>
+        </template>
+      </v-select>
+    </div>
 
     <div class="post-list">
       <v-container>
@@ -610,6 +697,22 @@ const onPageChanged = (pageData: { page: number, items: Post[] }) => {
               <VTextarea v-model="form.main_content" label="Ana İçerik" :rules="[v => !!v || 'İçerik zorunludur']"
                          rows="6" auto-grow counter required />
             </VCol>
+
+            <VCol cols="12">
+  <v-select
+    v-model="selectedTopicIds"
+    :items="topics"
+    item-title="name"
+    item-value="id"
+    label="Topic Seç"
+    multiple
+    chips
+    clearable
+    :loading="topics.length === 0"
+  />
+</VCol>
+
+            
           </VRow>
 
           <VCardActions class="pa-0 mt-4">
@@ -751,6 +854,16 @@ const onPageChanged = (pageData: { page: number, items: Post[] }) => {
   font-size: 0.9rem;
   line-height: 1.4;
   color: #666;
+}
+
+.topic-filter-container {
+  padding: 0 20px;
+  max-width: 300px;
+  margin: 10px auto;
+}
+
+.topic-filter {
+  margin-bottom: 10px;
 }
 
 </style>
