@@ -2,18 +2,21 @@ package handlers
 
 import (
 	"github.com/hayrat/go-template2/backend/app/viewmodel"
+	"github.com/hayrat/go-template2/backend/common/model"
 	"github.com/hayrat/go-template2/backend/common/service"
 	"github.com/hayrat/go-template2/backend/pkg/app"
 	"github.com/hayrat/go-template2/backend/pkg/errorsx"
 )
 
 type FollowHandler struct {
-	FollowService service.IFollowService
+	FollowService       service.IFollowService
+	NotificationService service.INotificationService
 }
 
-func NewFollowHandler(s service.IFollowService) FollowHandler {
+func NewFollowHandler(s service.IFollowService, ns service.INotificationService) FollowHandler {
 	h := FollowHandler{
-		FollowService: s,
+		FollowService:       s,
+		NotificationService: ns,
 	}
 
 	return h
@@ -30,6 +33,18 @@ func (h FollowHandler) Follow(ctx *app.Ctx) error {
 	follow, err := h.FollowService.Follow(ctx.Context(), followerID, followingID)
 	if err != nil {
 		return err
+	}
+
+	// Bildirim: takip edilen kullanıcıya
+	if followerID != followingID {
+		notification := model.Notification{
+			SenderID:     followerID,
+			TargetUserID: followingID,
+			Type:         model.NotificationTypeFollow,
+			FollowID:     &follow.ID,
+			IsRead:       false,
+		}
+		_ = h.NotificationService.Create(ctx.Context(), &notification)
 	}
 
 	// Create a new viewmodel and populate it from the follow model

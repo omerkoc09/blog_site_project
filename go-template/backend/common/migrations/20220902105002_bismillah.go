@@ -19,6 +19,7 @@ func init() {
 		&migration.Saved{},
 		&migration.Topic{},
 		&migration.PostTopic{},
+		&migration.Notification{},
 	}
 
 	up := func(ctx context.Context, db *bun.DB) error {

@@ -11,13 +11,17 @@ import (
 
 type LikeHandler struct {
 	base.BaseHandler[model.Like, viewmodel.LikeCreateVM, viewmodel.LikeUpdateVM, viewmodel.LikeListVM, viewmodel.LikeDetailVM]
-	LikeService service.ILikeService
+	LikeService         service.ILikeService
+	NotificationService service.INotificationService
+	PostService         service.IPostService
 }
 
-func NewLikeHandler(s service.ILikeService) LikeHandler {
+func NewLikeHandler(s service.ILikeService, ns service.INotificationService, ps service.IPostService) LikeHandler {
 	h := LikeHandler{
-		BaseHandler: base.NewBaseHandler[model.Like, viewmodel.LikeCreateVM, viewmodel.LikeUpdateVM, viewmodel.LikeListVM, viewmodel.LikeDetailVM](s),
-		LikeService: s,
+		BaseHandler:         base.NewBaseHandler[model.Like, viewmodel.LikeCreateVM, viewmodel.LikeUpdateVM, viewmodel.LikeListVM, viewmodel.LikeDetailVM](s),
+		LikeService:         s,
+		NotificationService: ns,
+		PostService:         ps,
 	}
 
 	return h
@@ -68,12 +72,22 @@ func (h LikeHandler) Create(ctx *app.Ctx) error {
 	if postID == 0 {
 		return errorsx.BadRequestError("Invalid post ID")
 	}
-
 	userID := ctx.GetUserID()
 	err := h.LikeService.ToggleLike(ctx.Context(), userID, postID)
 	if err != nil {
 		return err
 	}
-
+	// Bildirim: post sahibine
+	post, err := h.PostService.GetByID(ctx.Context(), postID)
+	if err == nil && post.UserId != userID {
+		notification := model.Notification{
+			SenderID:     userID,
+			TargetUserID: post.UserId,
+			Type:         model.NotificationTypeLike,
+			PostID:       &postID,
+			IsRead:       false,
+		}
+		_ = h.NotificationService.Create(ctx.Context(), &notification)
+	}
 	return ctx.SuccessResponse(nil)
 }

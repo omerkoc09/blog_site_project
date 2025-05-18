@@ -11,13 +11,14 @@ type UserLoginVM struct {
 }
 
 type UserCreateVM struct {
-	Email    string         `json:"email"`
-	Phone    string         `json:"phone"`
-	Name     string         `json:"name"`
-	Surname  string         `json:"surname"`
-	Role     model.UserRole `json:"role"`
-	Password string         `json:"password"`
-	About    string         `json:"about"`
+	Email     string         `json:"email"`
+	Phone     string         `json:"phone"`
+	Name      string         `json:"name"`
+	Surname   string         `json:"surname"`
+	Role      model.UserRole `json:"role"`
+	Password  string         `json:"password"`
+	About     string         `json:"about"`
+	Interests []int64        `json:"interests"`
 }
 
 func (vm UserCreateVM) ToDBModel(m model.User) model.User {
@@ -28,7 +29,7 @@ func (vm UserCreateVM) ToDBModel(m model.User) model.User {
 	m.Role = vm.Role
 	m.Password, _ = utils.HashPassword(vm.Password)
 	m.About = utils.ToTitle(vm.About)
-
+	m.Interests = vm.Interests
 	return m
 }
 
@@ -77,16 +78,17 @@ func (vm UserDetailVM) ToViewModel(m model.User) UserDetailVM {
 }
 
 type UserMeVM struct {
-	ID       int64          `json:"id"`
-	Email    string         `json:"email"`
-	Phone    string         `json:"phone"`
-	Name     string         `json:"name"`
-	Surname  string         `json:"surname"`
-	About    string         `json:"about"`
-	Role     model.UserRole `json:"role"`
-	Comments []CommentMeVM
-	Likes    []LikeMeVM
-	Posts    []PostMeVM
+	ID        int64          `json:"id"`
+	Email     string         `json:"email"`
+	Phone     string         `json:"phone"`
+	Name      string         `json:"name"`
+	Surname   string         `json:"surname"`
+	About     string         `json:"about"`
+	Role      model.UserRole `json:"role"`
+	Interests []int64        `json:"interests"`
+	Comments  []CommentMeVM
+	Likes     []LikeMeVM
+	Posts     []PostMeVM
 }
 
 func (vm UserMeVM) ToViewModel(m model.User) UserMeVM {
@@ -99,6 +101,7 @@ func (vm UserMeVM) ToViewModel(m model.User) UserMeVM {
 	vm.About = m.About
 
 	vm.Comments = make([]CommentMeVM, len(m.Comments))
+	vm.Interests = m.Interests
 	for i, comment := range m.Comments {
 		vm.Comments[i] = CommentMeVM{
 			ID:      comment.ID,
@@ -148,7 +151,6 @@ func (vm UserMeUpdateVM) ToDBModel(m model.User) model.User {
 	if vm.Password != "" {
 		m.Password, _ = utils.HashPassword(vm.Password)
 	}
-
 	return m
 }
 

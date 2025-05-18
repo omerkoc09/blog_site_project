@@ -7,6 +7,9 @@ import { ErrorPopup } from '@/utils/Popup'
 
 const router = useRouter()
 const loading = ref(false)
+const topics = ref<{ id: number, name: string }[]>([])
+const selectedTopicIds = ref<number[]>([])
+
 
 const form = ref({
   name: '',
@@ -17,31 +20,48 @@ const form = ref({
   role: 1,
 })
 
-const roles = ref([
-  { value: 1, title: 'Normal' },
-  { value: 10, title: 'Admin' }
-])
+const loadTopics = async () => {
+  try {
+    const [error, response] = await ApiService.get<any>('topic')
+    if (!error && response?.data) {
+      topics.value = response.data || response
+    } else if (error) {
+      console.error('Error loading topics:', error)
+      topics.value = []
+    }
+  } catch (err) {
+    console.error('Exception loading topics:', err)
+    topics.value = []
+  }
+}
 
 const onSubmit = async () => {
   loading.value = true
-  console.log('Submitting register form') // Debug log
-  
-  const [error, resp] = await ApiService.post(
-    'user', 
-    form.value, 
-    undefined, 
-    undefined, 
-    
-  )
-  
-  loading.value = false
-  console.log('Register response:', error, resp) // Debug log
 
-  if (error) 
+  // form verisini kopyala ve interests alanını ekle
+  const payload = {
+    ...form.value,
+    interests: selectedTopicIds.value, // topic id dizisi olarak gönder
+  }
+
+  const [error, resp] = await ApiService.post(
+    'user',
+    payload,
+    undefined,
+    undefined,
+  )
+
+  loading.value = false
+
+  if (error)
     return ErrorPopup(error)
 
   router.push('/auth/login')
 }
+
+onMounted(async () => {
+  await loadTopics()
+})
 </script>
 
 <template>
@@ -60,67 +80,41 @@ const onSubmit = async () => {
         <VForm @submit.prevent="onSubmit">
           <VRow>
             <VCol cols="12" md="6">
-              <VTextField
-                v-model="form.name"
-                label="Name"
-                :rules="[requiredValidator]"
-              />
+              <VTextField v-model="form.name" label="Name" :rules="[requiredValidator]" />
             </VCol>
-            
+
             <VCol cols="12" md="6">
-              <VTextField
-                v-model="form.surname"
-                label="Surname"
-                :rules="[requiredValidator]"
-              />
+              <VTextField v-model="form.surname" label="Surname" :rules="[requiredValidator]" />
             </VCol>
 
             <VCol cols="12">
-              <VTextField
-                v-model="form.email"
-                label="Email"
-                type="email"
-                :rules="[requiredValidator, emailValidator]"
-              />
+              <VTextField v-model="form.email" label="Email" type="email"
+                :rules="[requiredValidator, emailValidator]" />
             </VCol>
 
             <VCol cols="12">
-              <VTextField
-                v-model="form.phone"
-                label="Phone"
-                :rules="[requiredValidator, phoneValidator]"
-              />
+              <VTextField v-model="form.phone" label="Phone" :rules="[requiredValidator, phoneValidator]" />
             </VCol>
 
             <VCol cols="12">
-              <VTextField
-                v-model="form.password"
-                label="Password"
-                type="password"
-                :rules="[requiredValidator]"
-              />
+              <VTextField v-model="form.password" label="Password" type="password" :rules="[requiredValidator]" />
+            </VCol>
+            <VCol cols="12">
+              <v-select v-model="selectedTopicIds" :items="topics" item-title="name" item-value="id" label="Topic Seç"
+                multiple chips clearable :loading="topics.length === 0" />
             </VCol>
 
-            <VCol cols="12">
-  
-</VCol>
+            <VCol cols="12"></VCol>
 
 
             <VCol cols="12">
-              <VBtn
-                block
-                type="submit"
-                :loading="loading"
-              >
+              <VBtn block type="submit" :loading="loading">
                 Register
               </VBtn>
             </VCol>
 
             <VCol cols="12" class="text-center">
-              <RouterLink
-                class="text-primary ms-2"
-                to="/auth/login"
-              >
+              <RouterLink class="text-primary ms-2" to="/auth/login">
                 Already have an account?
               </RouterLink>
             </VCol>

@@ -19,13 +19,17 @@ import (
 
 type PostHandler struct {
 	base.BaseHandler[model.Post, viewmodel.PostCreateVM, viewmodel.DummyPostVM, viewmodel.PostListVM, viewmodel.PostDetailVM]
-	postService service.IPostService
+	postService         service.IPostService
+	NotificationService service.INotificationService
+	FollowService       service.IFollowService
 }
 
-func NewPostHandler(s service.IPostService) PostHandler {
+func NewPostHandler(s service.IPostService, ns service.INotificationService, fs service.IFollowService) PostHandler {
 	h := PostHandler{
-		BaseHandler: base.NewBaseHandler[model.Post, viewmodel.PostCreateVM, viewmodel.DummyPostVM, viewmodel.PostListVM, viewmodel.PostDetailVM](s),
-		postService: s,
+		BaseHandler:         base.NewBaseHandler[model.Post, viewmodel.PostCreateVM, viewmodel.DummyPostVM, viewmodel.PostListVM, viewmodel.PostDetailVM](s),
+		postService:         s,
+		NotificationService: ns,
+		FollowService:       fs,
 	}
 
 	return h
@@ -209,6 +213,24 @@ func (h PostHandler) CreatePostWithImage(ctx *app.Ctx) error {
 	err = h.postService.Create(ctx.Context(), &post)
 	if err != nil {
 		return errorsx.InternalError(err, "Post oluşturulamadı.")
+	}
+
+	// Bildirim: takipçilere
+	followers, err := h.FollowService.GetFollowers(ctx.Context(), post.UserId)
+	if err == nil {
+		for _, follower := range followers {
+			if follower.ID == post.UserId {
+				continue
+			}
+			notification := model.Notification{
+				SenderID:     post.UserId,
+				TargetUserID: follower.ID,
+				Type:         model.NotificationTypeFollowedUserPost,
+				PostID:       &post.ID,
+				IsRead:       false,
+			}
+			_ = h.NotificationService.Create(ctx.Context(), &notification)
+		}
 	}
 
 	// Topic ilişkilerini kaydet

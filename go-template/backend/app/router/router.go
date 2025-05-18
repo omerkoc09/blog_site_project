@@ -30,15 +30,17 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	followService := service.NewFollowService(app.DB)
 	savedService := service.NewSavedService(app.DB)
 	topicService := service.NewTopicService(app.DB)
+	notificationService := service.NewNotificationService(app.DB)
 
 	authHandler := handlers.NewAuthHandler(authService, userService, *tokenService)
 	userHandler := handlers.NewUserHandler(userService)
-	postHandler := handlers.NewPostHandler(postService)
-	commentHandler := handlers.NewCommentHandler(commentService)
-	likeHandler := handlers.NewLikeHandler(likeService)
-	followHandler := handlers.NewFollowHandler(followService)
+	postHandler := handlers.NewPostHandler(postService, notificationService, followService)
+	commentHandler := handlers.NewCommentHandler(commentService, notificationService, postService)
+	likeHandler := handlers.NewLikeHandler(likeService, notificationService, postService)
+	followHandler := handlers.NewFollowHandler(followService, notificationService)
 	savedHandler := handlers.NewSavedHandler(savedService)
 	topicHandler := handlers.NewTopicHandler(topicService)
+	notificationHandler := handlers.NewNotificationHandler(notificationService)
 
 	router.Post(api, "/auth/login", authHandler.Login)
 	router.Post(api, "/auth/refresh", authHandler.RefreshToken)
@@ -54,6 +56,7 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 	router.Get(api, "/user_guest/:id", userHandler.GetByID)
 	router.Get(api, "/followers/:id", followHandler.GetFollowers)
 	router.Get(api, "/followings/:id", followHandler.GetFollowing)
+	router.Get(api, "/topic", topicHandler.Query)
 
 	api.Use(router.JWTMiddleware(app))
 
@@ -87,11 +90,13 @@ func (AppRouter) RegisterRoutes(app *app.App) {
 
 	// Topic endpoints
 	router.Post(api, "/topic", topicHandler.Create)
-	router.Get(api, "/topic", topicHandler.Query)
 	router.Get(api, "/topic/:id", topicHandler.GetByID)
 	router.Put(api, "/topic/:id", topicHandler.Update)
 	router.Delete(api, "/topic/:id", topicHandler.Delete)
-
 	router.Get(api, "/post/:id/topics", postHandler.GetTopicsByPostID)
 	router.Get(api, "/topic/:id/posts", topicHandler.GetPostsByTopicID)
+
+	// Notification endpoints
+	router.Get(api, "/notifications", notificationHandler.List)
+	router.Put(api, "/notifications/:id/read", notificationHandler.MarkAsRead)
 }

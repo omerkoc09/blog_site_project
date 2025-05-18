@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { router } from '@/plugins/1.router'
+import { Notification } from '@/services/notification'
+import ApiService from '@/services/ApiService';
 
 // Props tanımlama
 interface AppBarProps {
@@ -15,6 +17,47 @@ const props = withDefaults(defineProps<AppBarProps>(), {
 
 const userStore = useUserStore()
 const profileMenu = ref(false)
+const notifications = ref<Notification[]>([])
+const notificationMenu = ref(false)
+const loadingNotifications = ref(false)
+
+const unreadCount = computed(() => notifications.value.filter(n => !n.is_read).length)
+
+const openAddModal = () => {
+  emit('showAddModal')
+}
+
+async function loadNotifications() {
+  loadingNotifications.value = true
+  const [error, response] = await ApiService.get<Notification[]>('notifications')
+  if (!error && response) {
+    notifications.value = response.data || [] || response
+  }
+  loadingNotifications.value = false
+}
+
+async function handleNotificationClick(notification: Notification) {
+  if (!notification.is_read) {
+    const [error, response] = await ApiService.put<Notification>(`notifications/${notification.id}/read`)
+    if (!error && response) {
+      notification.is_read = true
+    }
+  }
+  if (notification.post_id) {
+    router.push(`/third_page/${notification.post_id}`)
+  }
+  if (notification.follow_id) {
+    router.push(`/author/${notification.sender_id}`)
+  }
+  
+  notificationMenu.value = false
+}
+
+onMounted(() => {
+  if (userStore.user.name) {
+    loadNotifications()
+  }
+})
 
 // Çıkış yapma fonksiyonu
 const logout = () => {
@@ -36,10 +79,6 @@ const navigateToRegister = () => {
 
 // Yeni post/gönderi eklemeyi tetikleyen emit
 const emit = defineEmits(['showAddModal'])
-
-const openAddModal = () => {
-  emit('showAddModal')
-}
 </script>
 
 <template>
@@ -110,6 +149,36 @@ const openAddModal = () => {
                   <VIcon icon="tabler-logout" size="small" class="me-2" color="error"/>
                 </template>
                 <VListItemTitle>Çıkış Yap</VListItemTitle>
+              </VListItem>
+            </VList>
+          </VMenu>
+
+          <!-- Bildirim ikonu -->
+          <VMenu v-model="notificationMenu" location="bottom end">
+            <template v-slot:activator="{ props }">
+              <VBtn icon v-bind="props" @click="loadNotifications">
+                <VBadge :content="unreadCount" color="red" v-if="unreadCount > 0">
+                  <VIcon>tabler-bell</VIcon>
+                </VBadge>
+                <VIcon v-else>tabler-bell</VIcon>
+              </VBtn>
+            </template>
+            <VList width="350" style="max-height:400px;overflow:auto;">
+              <VListItem v-if="loadingNotifications">
+                <VListItemTitle>Yükleniyor...</VListItemTitle>
+              </VListItem>
+              <VListItem v-for="n in notifications" :key="n.id" @click="handleNotificationClick(n)" :class="{'bg-grey-lighten-4': !n.is_read}">
+                <VListItemTitle>
+                  <span v-if="n.type === 1">Birisi gönderini beğendi.</span>
+                  <span v-else-if="n.type === 2">Birisi gönderine yorum yaptı.</span>
+                  <span v-else-if="n.type === 3">Biri seni takip etti.</span>
+                  <span v-else-if="n.type === 4">Takip ettiğin biri gönderi paylaştı.</span>
+                  <span v-else>Yeni bildirim.</span>
+                </VListItemTitle>
+                <VListItemSubtitle v-if="n.created_at">{{ new Date(n.created_at).toLocaleString('tr-TR') }}</VListItemSubtitle>
+              </VListItem>
+              <VListItem v-if="!loadingNotifications && notifications.length === 0">
+                <VListItemTitle>Hiç bildirimin yok.</VListItemTitle>
               </VListItem>
             </VList>
           </VMenu>

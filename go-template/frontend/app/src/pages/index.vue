@@ -285,12 +285,24 @@ const filteredPosts = computed(() => {
   if (!posts.value) {
     return tab.value === 4 ? savedPosts.value || [] : [];
   }
+
+  for (const post of posts.value) {
+    console.log('post.topics', post.topics)
+  }
+   // Kullanıcının ilgi alanı ile eşleşenler
+   const interestedPosts = posts.value.filter(post =>
+    post.topics?.some((topic) => userStore.user?.interests?.includes(topic.id))
+  );
   
-  // İlk olarak tab filtrelemesini yapalım
-  let result = posts.value
+  // Eşleşmeyenler
+  const otherPosts = posts.value.filter(post =>
+    !post.topics?.some(topic => userStore.user?.interests?.includes(topic.id))
+  );
+  
+  let result: any[] = [];
   
   if(tab.value == 1) {
-    result = posts.value;
+    result = [...interestedPosts, ...otherPosts];
   }
   else if(tab.value == 2) {
     result = userStore.isAuthenticated && userStore.user?.id ? 
@@ -302,12 +314,13 @@ const filteredPosts = computed(() => {
   else if(tab.value == 4) {
     result = savedPosts.value || [];
   }
+
   
   // Ardından topic filtresi uygulayalım (eğer bir topic seçildiyse)
   if (selectedTopicId.value) {
     console.log('SELECTED TOPIC ID', selectedTopicId.value)
     result = result.filter(post => 
-      post.topics?.some(topic => topic.id === selectedTopicId.value)
+      post.topics?.some((topic: any) => topic.id === selectedTopicId.value)
     )
   }
   
@@ -533,8 +546,8 @@ const onPageChanged = (pageData: { page: number, items: Post[] }) => {
         align-tabs="center"
         color="deep-purple-accent-4"
     >
-      <v-tab :value="1">Explore</v-tab>
-      <v-tab :value="2">My Posts</v-tab>
+      <v-tab :value="1">For you</v-tab>
+      <v-tab :value="2">Your Posts</v-tab>
       <v-tab :value="3">Following</v-tab>
       <v-tab :value="4">Saved</v-tab>
     </v-tabs>

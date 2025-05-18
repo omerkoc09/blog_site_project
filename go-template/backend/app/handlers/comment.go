@@ -11,13 +11,17 @@ import (
 
 type CommentHandler struct {
 	base.BaseHandler[model.Comment, viewmodel.CommentCreateVM, viewmodel.CommentUpdateVM, viewmodel.CommentListVM, viewmodel.CommentDetailVM]
-	CommentService service.ICommentService
+	CommentService      service.ICommentService
+	NotificationService service.INotificationService
+	PostService         service.IPostService
 }
 
-func NewCommentHandler(s service.ICommentService) CommentHandler {
+func NewCommentHandler(s service.ICommentService, ns service.INotificationService, ps service.IPostService) CommentHandler {
 	h := CommentHandler{
-		BaseHandler:    base.NewBaseHandler[model.Comment, viewmodel.CommentCreateVM, viewmodel.CommentUpdateVM, viewmodel.CommentListVM, viewmodel.CommentDetailVM](s),
-		CommentService: s,
+		BaseHandler:         base.NewBaseHandler[model.Comment, viewmodel.CommentCreateVM, viewmodel.CommentUpdateVM, viewmodel.CommentListVM, viewmodel.CommentDetailVM](s),
+		CommentService:      s,
+		NotificationService: ns,
+		PostService:         ps,
 	}
 
 	return h
@@ -75,6 +79,20 @@ func (h CommentHandler) Create(ctx *app.Ctx) error {
 	err := h.CommentService.Create(ctx.Context(), &comment)
 	if err != nil {
 		return err
+	}
+
+	// Bildirim: post sahibine
+	post, err := h.PostService.GetByID(ctx.Context(), comment.PostId)
+	if err == nil && post.UserId != comment.UserId {
+		notification := model.Notification{
+			SenderID:     comment.UserId,
+			TargetUserID: post.UserId,
+			Type:         model.NotificationTypeComment,
+			PostID:       &comment.PostId,
+			CommentID:    &comment.ID,
+			IsRead:       false,
+		}
+		_ = h.NotificationService.Create(ctx.Context(), &notification)
 	}
 
 	return ctx.SuccessResponse(comment)

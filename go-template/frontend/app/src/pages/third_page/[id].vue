@@ -506,7 +506,7 @@ const loadTopics = async () => {
           </VBtn>
         </VCardItem>
 
-        
+
         <!-- Topic bilgisi -->
         <div v-if="form.topics && form.topics.length > 0" class="mb-2 px-4 d-flex flex-wrap">
           <v-chip
@@ -521,12 +521,6 @@ const loadTopics = async () => {
 </v-chip>
         </div>
 
-        <div class="px-4 mb-4">
-          <div class="text-h3 mb-1 d-flex justify-space-between align-center">{{ form.title }}</div>
-          <div class="text-h4 mb-1 d-flex justify-space-between align-center">{{ form.content }}</div>
-          <div class="text-body-1 white-space-pre-wrap">{{ form.main_content }}</div>
-        </div>
-
         <!-- User info and date -->
         <VCardItem>
           <template #prepend>
@@ -538,15 +532,15 @@ const loadTopics = async () => {
           <div>
             <VCardTitle class="user-name d-flex align-center">
               <a class="author-link" @click="navigateToAuthor(form.user_id)" target="_blank"> {{ getUserFullName(form.user_id) }}</a>
-              <VBtn 
-                v-if="!userStore.user.id || userStore.user.id !== form.user_id"
-                :color="isFollowing ? 'error' : 'primary'" 
-                :variant="isFollowing ? 'outlined' : 'flat'"
-                :loading="followLoading"
-                class="follow-btn ms-5"
-                size="small"
-                density="compact"
-                @click="toggleFollow(userId)"
+              <VBtn
+                  v-if="!userStore.user.id || userStore.user.id !== form.user_id"
+                  :color="isFollowing ? 'error' : 'primary'"
+                  :variant="isFollowing ? 'outlined' : 'flat'"
+                  :loading="followLoading"
+                  class="follow-btn ms-5"
+                  size="small"
+                  density="compact"
+                  @click="toggleFollow(userId)"
               >
                 <VIcon :icon="isFollowing ? 'tabler-user-minus' : 'tabler-user-plus'" size="small" class="me-1" />
                 {{ isFollowing ? 'Takibi Bırak' : 'Takip Et' }}
@@ -556,22 +550,31 @@ const loadTopics = async () => {
               {{ tarihFormat(form.created_at) }}
             </VCardSubtitle>
           </div>
-          
+
         </VCardItem>
 
         <!-- Like and comment buttons -->
         <VCardActions>
           <VBtn variant="text" prepend-icon="tabler-heart" :color="isLikedByUser(form.likes) ? 'error' : 'default'"
-            @click="handleLike(form.id, form)">
+                @click="handleLike(form.id, form)">
             {{ likeCount }}
           </VBtn>
 
           <VBtn variant="text" prepend-icon="tabler-message-circle" color="default"
-            @click="showCommentInput = showCommentInput === form.id ? null : form.id ; scrollToBottom()">
-            {{ commentCount }} 
+                @click="showCommentInput = showCommentInput === form.id ? null : form.id ; scrollToBottom()">
+            {{ commentCount }}
           </VBtn>
           <VSpacer />
         </VCardActions>
+
+        <div class="px-4 mb-4">
+          <div class="text-h3 mb-1 d-flex justify-space-between align-center">{{ form.title }}</div>
+          <div class="text-h4 mb-1 d-flex justify-space-between align-center">{{ form.content }}</div>
+          <div class="text-body-1 white-space-pre-wrap">{{ form.main_content }}</div>
+
+        </div>
+
+
 
 
 
